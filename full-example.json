@@ -1,0 +1,200 @@
+{
+  "spec": "cinemashowtimes-json/1.0",
+  "generated_at": "2025-08-16T10:00:03Z",
+  "ttl_seconds": 900,
+
+  "cinema": {
+    "cinema_id": "EXC-AUS-CNAME",
+    "name": "Example Cinemas Name",
+    "timezone": "Australia/Melbourne",
+    "lat": -34.8720,
+    "lon": 150.6020,
+    "address": "123 Princes Hwy, Port Melboourne, VIC 3207, AU",
+    "phone": "+61 3 5555 1234",
+    "website": "https://examplecinemas.com/",
+    "google_place_id": "ChIJN1t_tDeuEmsRUsoyG83frY4",
+    "google_business_id": "12345678901234567890"
+  },
+
+  "films": [
+    {
+      "film_id": "FILM-AVATAR3",
+      "title": "Avatar: Fire and Ash",
+      "alt_titles": [],
+      "identifiers": {
+        "eidr": "10.5240/ABCD-1234-EF56-7890-0000-X",
+        "imdb": "tt12345678",
+        "isan": null
+      },
+      "runtime_minutes": 190,
+      "rating": "M",
+      "languages": ["en"],
+      "distributor": "20th Century Studios",
+      "assets": {
+        "poster": {
+          "small": "https://img.examplecinemas.com/posters/avatar3_w342.jpg",
+          "large": "https://img.examplecinemas.com/posters/avatar3_w1280.jpg"
+        },
+        "banner": {
+          "wide": "https://img.examplecinemas.com/banners/avatar3_w1920.jpg"
+        },
+        "thumbnail": {
+          "square": "https://img.examplecinemas.com/thumbs/avatar3_200x200.jpg"
+        },
+        "backdrop": {
+          "large": "https://img.examplecinemas.com/backdrops/avatar3_w1920.jpg"
+        },
+        "logo": {
+          "transparent": "https://img.examplecinemas.com/logos/avatar3.png"
+        },
+        "trailers": [
+          { "type": "teaser", "url": "https://youtu.be/EXAMPLE1"},
+          { "type": "official", "url": "https://youtu.be/EXAMPLE2", "primary": true },
+          { "type": "theatrical", "url": "https://youtu.be/EXAMPLE3" }
+        ]
+      }
+    },
+
+    {
+      "__comment": "Comming Soon Entry: This is a placeholder for a film that is not yet released.",
+      "film_id": "FILM-WICK5",
+      "title": "John Wick: Chapter 5",
+      "alt_titles": [],
+      "identifiers": {
+        "eidr": null,
+        "imdb": "tt99999999",
+        "isan": null
+      },
+      "runtime_minutes": null,
+      "rating": null,
+      "languages": ["en"],
+      "distributor": "Lionsgate",
+      "status": "coming_soon",
+      "release_date": "2026-02-05",
+      "pre_sales_start": "2025-10-20",
+      "presales": {
+        "booking_url": "https://tickets.examplecinemas.com/presales?film=FILM-DUNE2",
+        "earliest_showtime_local": "2025-11-15T10:00:00+11:00",
+        "earliest_showtime_utc": "2025-11-14T23:00:00Z"
+      },
+      "assets": {
+        "poster": {
+          "small": "https://img.examplecinemas.com/posters/jw5_w342.jpg",
+          "large": "https://img.examplecinemas.com/posters/jw5_w1280.jpg"
+        },
+        "banner": {
+          "wide": "https://img.examplecinemas.com/banners/jw5_w1920.jpg"
+        },
+        "logo": {
+          "transparent": "https://img.examplecinemas.com/logos/jw5.png"
+        },
+        "trailers": [
+          { "type": "announcement", "url": "https://youtu.be/EX_ANNOUNCE_JW5" }
+        ]
+      }
+    }
+  ],
+
+  "auditoria": [
+    {
+      "auditorium_id": "EXC-CNAME-S1",
+      "name": "Screen 1",
+      "attributes": ["Laser", "Dolby Atmos", "Accessible"],
+      "seat_count": 210,
+      "seat_classes": [
+        { "class_id": "STD", "display_name": "Standard", "features": ["Padded"], "base_modifier": 0.0 },
+        { "class_id": "PRM", "display_name": "Premium Recliner", "features": ["Recliner","Extra legroom"], "base_modifier": 4.0 },
+        { "class_id": "DBX", "display_name": "D-BOX Motion", "features": ["Motion seat"], "base_modifier": 8.0 }
+      ],
+      "seatmap_url": "https://tickets.examplecinemas.com/seatmap?aud=EXC-CNAME-S1"
+    }
+  ],
+
+  "sessions": [
+    {
+      "session_id": "EXC-CNAME-2025-08-18-1930-S1-AVATAR3-2D",
+      "film_id": "FILM-AVATAR3",
+      "auditorium_id": "EXC-CNAME-S1",
+
+      "preshow_start_time_local": "2025-08-18T19:20:00+10:00",
+      "advertised_start_time_local": "2025-08-18T19:30:00+10:00",
+      "feature_start_time_local": "2025-08-18T19:45:00+10:00",
+      "credits_time_local": "2025-08-18T20:40:00+10:00",
+      "end_time_local": "2025-08-18T22:40:00+10:00",
+
+      "start_time_local": "2025-08-18T19:30:00+10:00",
+      "start_time_utc": "2025-08-18T09:30:00Z",
+
+      "attributes": {
+        "video_format": "2D",
+        "video_marketing_name": "Vmax",
+        "audio_format": "Dolby Atmos",
+        "accessibility": {
+          "ccap": true,
+          "ccap_languages": ["fr", "de"],
+          "ocap": false,
+          "descriptive_audio": true,
+          "wheelchair": true
+        },
+        "language": "en",
+        "subtitle_languages": ["en"]
+      },
+
+      "pricing": [
+        { "category": "Adult", "class_id": "STD", "price": 19.5, "currency": "AUD" },
+        { "category": "Adult", "class_id": "PRM", "price": 23.5, "currency": "AUD" },
+        { "category": "Adult", "class_id": "DBX", "price": 27.5, "currency": "AUD" },
+        { "category": "Child", "class_id": "STD", "price": 14.0, "currency": "AUD" }
+      ],
+
+      "availability_by_class": [
+        { "class_id": "STD", "seats_total": 120, "seats_available": 88 },
+        { "class_id": "PRM", "seats_total": 60,  "seats_available": 22 },
+        { "class_id": "DBX", "seats_total": 30,  "seats_available": 6  }
+      ],
+
+      "booking_url": "https://tickets.examplecinemas.com/checkout?sess=EXC-CNAME-2025-08-18-1930-S1-AVATAR3-2D",
+      "checksum": "b1a9f2a6c8f14b5a9d7dce0d1f6a1c2e"
+    },
+
+    {
+      "session_id": "EXC-CNAME-2025-08-19-1330-S1-AVATAR3-3D",
+      "film_id": "FILM-AVATAR3",
+      "auditorium_id": "EXC-CNAME-S1",
+
+      "preshow_start_time": "2025-08-19T13:20:00+10:00",
+      "advertised_start_time": "2025-08-19T13:30:00+10:00",
+      "feature_start_time": "2025-08-19T13:45:00+10:00",
+      "end_time_local": "2025-08-19T16:40:00+10:00",
+
+      "start_time_local": "2025-08-19T13:30:00+10:00",
+      "start_time_utc": "2025-08-19T03:30:00Z",
+
+      "attributes": {
+        "video_format": "3D",
+        "audio_format": "7.1",
+        "accessibility": {
+          "ccap": false,
+          "ocap": false,
+          "descriptive_audio": false,
+          "wheelchair": true
+        },
+        "language": "en",
+        "subtitle_languages": []
+      },
+
+      "pricing": [
+        { "category": "Adult", "class_id": "STD", "price": 21.5, "currency": "AUD" },
+        { "category": "Adult", "class_id": "PRM", "price": 25.5, "currency": "AUD" }
+      ],
+
+      "availability_by_class": [
+        { "class_id": "STD", "seats_total": 150, "seats_available": 140 },
+        { "class_id": "PRM", "seats_total": 60,  "seats_available": 60 }
+      ],
+
+      "booking_url": "https://tickets.examplecinemas.com/checkout?sess=EXC-CNAME-2025-08-19-1330-S1-AVATAR3-3D",
+      "checksum": "2ef0cb7b2a1e4130b9ce6f9c3a4db946"
+    }
+  ]
+}

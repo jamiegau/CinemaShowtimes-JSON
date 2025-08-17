@@ -1,0 +1,385 @@
+{
+  // === CinemaShowtimes-JSON specification/version string (semantic; bump on breaking changes) ===
+  spec: 'cinemashowtimes-json/1.0',
+
+  // ISO-8601 UTC timestamp when this payload was generated (consumers may cache until ttl expires)
+  generated_at: '2025-08-16T10:00:03Z',
+
+  // Time-to-live hint (seconds). Partners may poll again after this interval.
+  ttl_seconds: 900,
+
+  // ------------------------------------------------------------------------------------------------
+  // CINEMA (venue-level metadata; one payload may include multiple cinemas in future versions)
+  // ------------------------------------------------------------------------------------------------
+  cinema: {
+    // Stable venue identifier (publisher-scoped). Used to key sessions/auditoria to a site.
+    cinema_id: 'EXC-AUS-CNAME',
+
+    // Human-readable venue name
+    name: 'Example Cinemas Name',
+
+    // IANA timezone for local showtimes (e.g., 'Australia/Melbourne', 'America/Los_Angeles')
+    timezone: 'Australia/Melbourne',
+
+    // Latitude / longitude of the venue centroid (WGS84)
+    lat: -34.8720,
+    lon: 150.6020,
+
+    // Postal address (single-line recommendation; street/city/region/postcode/country)
+    address: '123 Princes Hwy, Port Melboourne, VIC 3207, AU',
+
+    // Public phone number (E.164 recommended)
+    phone: '+61 3 5555 1234',
+
+    // Public website/homepage for the cinema
+    website: 'https://examplecinemas.com/',
+
+    // Google Place ID (Maps/Places stable ID)
+    google_place_id: 'ChIJN1t_tDeuEmsRUsoyG83frY4',
+
+    // Google Business Profile (GBP) numeric ID (optional; useful for ops tooling)
+    google_business_id: '12345678901234567890',
+  },
+
+  // ------------------------------------------------------------------------------------------------
+  // FILMS (title metadata; referenced by sessions via film_id)
+  // ------------------------------------------------------------------------------------------------
+  films: [
+    {
+      // Stable film identifier within this feed/publisher
+      film_id: 'FILM-AVATAR3',
+
+      // Marketing title
+      title: 'Avatar: Fire and Ash',
+
+      // Optional list of alternate titles (AKA, translated, abbreviations)
+      alt_titles: [],
+
+      // Cross-ecosystem identifiers (use what you have; EIDR most precise)
+      identifiers: {
+        // Entertainment Identifier Registry (canonical content ID)
+        eidr: '10.5240/ABCD-1234-EF56-7890-0000-X',
+
+        // IMDb title ID (if mapped)
+        imdb: 'tt12345678',
+
+        // ISAN if available, else null
+        isan: null,
+      },
+
+      // Feature runtime (minutes) for UX estimations / end-time calc
+      runtime_minutes: 190,
+
+      // Local territory rating (use territory’s system, e.g., AU: G/PG/M/MA15+/R18+)
+      rating: 'M',
+
+      // Spoken language codes (BCP-47; typically ['en'] etc.)
+      languages: ['en'],
+
+      // Distributor (free text)
+      distributor: '20th Century Studios',
+
+      // Media assets (prefer stable URLs; include at least a poster)
+      assets: {
+        // Posters (portrait). Use sizes that make sense to you; document them in the spec.
+        poster: {
+          small: 'https://img.examplecinemas.com/posters/avatar3_w342.jpg',   // ~mobile card
+          large: 'https://img.examplecinemas.com/posters/avatar3_w1280.jpg', // ~desktop/hero
+        },
+
+        // Banners/Hero (landscape, wide)
+        banner: {
+          wide: 'https://img.examplecinemas.com/banners/avatar3_w1920.jpg',
+        },
+
+        // Thumbnails (often square)
+        thumbnail: {
+          square: 'https://img.examplecinemas.com/thumbs/avatar3_200x200.jpg',
+        },
+
+        // Backdrops/Background stills (landscape)
+        backdrop: {
+          large: 'https://img.examplecinemas.com/backdrops/avatar3_w1920.jpg',
+        },
+
+        // Title treatment/logo (typically transparent PNG/SVG)
+        logo: {
+          transparent: 'https://img.examplecinemas.com/logos/avatar3.png',
+        },
+
+        // Video trailers (multiple allowed); mark one as primary when possible
+        trailers: [
+          { type: 'teaser',    url: 'https://youtu.be/EXAMPLE1' },
+          { type: 'official',  url: 'https://youtu.be/EXAMPLE2', primary: true },
+          { type: 'theatrical',url: 'https://youtu.be/EXAMPLE3' },
+        ],
+      },
+    },
+    {
+      // A placeholder entry for a film that is not yet released but is announced.
+      film_id: "FILM-WICK5", // Unique internal/external ID for the film
+      title: "John Wick: Chapter 5", // Main display title
+      alt_titles: [], // Alternate titles (regional/localized)
+      
+      identifiers: {
+        eidr: null,        // Optional: EIDR ID if known
+        imdb: "tt99999999", // IMDB ID
+        isan: null         // Optional: ISAN ID if available
+      },
+
+      runtime_minutes: null, // Unknown until release
+      rating: null,          // Will be provided once classified
+      languages: ["en"],     // Primary spoken languages
+      distributor: "Lionsgate", // Distributor / rights holder
+      
+      status: "coming_soon",  // Film status: released | coming_soon | pre_release
+      release_date: "2026-02-05", // Official release date (local market)
+      pre_sales_start: "2025-10-20", // Date presales open (if applicable)
+
+      presales: {
+        booking_url: "https://tickets.examplecinemas.com/presales?film=FILM-DUNE2", // Pre-sales landing page
+        earliest_showtime_local: "2025-11-15T10:00:00+11:00", // First known local presale showtime
+        earliest_showtime_utc: "2025-11-14T23:00:00Z"         // First known UTC presale showtime
+      },
+
+      assets: {
+        poster: {
+          small: "https://img.examplecinemas.com/posters/jw5_w342.jpg",   // Small/thumbnail poster
+          large: "https://img.examplecinemas.com/posters/jw5_w1280.jpg"   // High-res poster
+        },
+        banner: {
+          wide: "https://img.examplecinemas.com/banners/jw5_w1920.jpg"    // Wide banner (e.g., hero images)
+        },
+        logo: {
+          transparent: "https://img.examplecinemas.com/logos/jw5.png"     // Transparent PNG/SVG logo
+        },
+        trailers: [
+          {
+            type: "announcement", // teaser | official | theatrical | announcement
+            url: "https://youtu.be/EX_ANNOUNCE_JW5" // Trailer link
+          }
+        ]
+      }
+    }
+  ],
+
+  // ------------------------------------------------------------------------------------------------
+  // AUDITORIA (rooms/screens; attributes & seating model)
+  // ------------------------------------------------------------------------------------------------
+  auditoria: [
+    {
+      // Stable auditorium identifier scoped to the cinema
+      auditorium_id: 'EXC-CNAME-S1',
+
+      // Display name for the room
+      name: 'Screen 1',
+
+      // Auditorium attributes (controlled vocabulary; examples below)
+      // Suggested values (non-exhaustive; normalize brand names into generic capabilities where possible):
+      //  Projection & Video: 'Laser', 'RGB Laser', 'Xenon', 'HDR', 'HFR', 'IMAX', 'Dolby Vision', 'ScreenX', '4DX', '3D', 'Giant Screen', 'PLF'
+      //  Audio: 'Dolby Atmos', 'DTS:X', 'Auro 11.1', 'IAB', '7.1', '5.1'
+      //  Seating: 'Recliner', 'Premium', 'D-BOX Motion', 'VIP', 'Standard', 'Luxury Lounger'
+      //  Accessibility: 'Wheelchair Accessible', 'Companion Seating', 'Closed Captioning', 'Open Caption', 'Descriptive Audio', 'Assistive Listening'
+      //  Amenities/Policy: 'Reserved Seating', 'Luxury Service', 'Alcohol Service', 'Private Box', 'Premium Lounges'
+      //  Infrastructure: 'Event Capable', 'High Bandwidth', 'eSports Ready', 'Projection-Boothless'
+      attributes: ['Laser', 'Dolby Atmos', 'Accessible'],
+
+      // Nominal seat capacity (may differ session-to-session due to blocks/holds/layouts)
+      seat_count: 210,
+
+      // Seat classes (venue-level definition). Reference by class_id in session pricing & availability.
+      seat_classes: [
+        {
+          class_id: 'STD',                   // stable machine key
+          display_name: 'Standard',          // user-facing label
+          features: ['Padded'],              // short bullet features
+          base_modifier: 0.0,                // price delta vs base (informational/Optional)
+        },
+        {
+          class_id: 'PRM',
+          display_name: 'Premium Recliner',
+          features: ['Recliner', 'Extra legroom'],
+          base_modifier: 4.0,
+        },
+        {
+          class_id: 'DBX',
+          display_name: 'D-BOX Motion',
+          features: ['Motion seat'],
+          base_modifier: 8.0,
+        },
+      ],
+
+      // Optional seatmap endpoint (seat-level layout); separate API encouraged for large payloads
+      // Optioal development of a seperate seat API under consideration
+      seatmap_url: 'https://tickets.examplecinemas.com/seatmap?aud=EXC-CNAME-S1',
+    },
+  ],
+
+  // ------------------------------------------------------------------------------------------------
+  // SESSIONS (individual showtimes; pricing & availability per class; detailed timing)
+  // ------------------------------------------------------------------------------------------------
+  sessions: [
+    {
+      // Stable session identifier (should change if start_time changes)
+      session_id: 'EXC-CNAME-2025-08-18-1930-S1-AVATAR3-2D',
+
+      // Film reference, from "Films" listed above.
+      film_id: 'FILM-AVATAR3',
+
+      // Auditorium reference
+      auditorium_id: 'EXC-CNAME-S1',
+
+      // Timing breakdown (all ISO-8601 with timezone offset):
+      //  preshow_start_time_local: lights down/ads/trailers begin (if modeled)
+      //  advertised_start_time_local: time printed on listings/marketing
+      //  feature_start_time_local: main feature actual start (helps user expectations)
+      //  credits_time_local: The time the credits start
+      //  end_time_local: scheduled end including credits; useful for turnover planning
+      preshow_start_time_local: '2025-08-18T19:20:00+10:00',
+      advertised_start_time_local: '2025-08-18T19:30:00+10:00',
+      feature_start_time_local: '2025-08-18T19:45:00+10:00',
+      credits_time_local: '2025-08-18T20:40:00+10:00',
+      end_time_local: '2025-08-18T22:40:00+10:00',
+
+      // Redundant convenience fields (legacy compatibility)
+      start_time_local: '2025-08-18T19:30:00+10:00',
+      start_time_utc: '2025-08-18T09:30:00Z',
+
+      // Session attributes (capabilities & presentation details)
+      attributes: {
+        // Possible values for attributes.video_format
+        // Basic formats
+        //   '2D'          → Standard 2D presentation
+        //   '3D'          → Standard 3D presentation
+        //   'HFR 2D'      → High Frame Rate 2D (e.g., 48fps/60fps)
+        //   'HFR 3D'      → High Frame Rate 3D
+        //   'HDR'         → Generic HDR (higher brightness / contrast, PQ or HLG based)
+        //   'Dolby Vision'→ Dolby Cinema’s proprietary HDR system
+        //
+        // Premium large-format variants
+        //   'IMAX 2D'                 → Generic IMAX-branded 2D
+        //   'IMAX 3D'                 → Generic IMAX-branded 3D
+        //   'IMAX 70mm Film'          → 15-perf 70mm IMAX film
+        //   'IMAX Digital Xenon 2D'   → IMAX digital (dual 2K/4K Xenon) in 2D
+        //   'IMAX Digital Xenon 3D'   → IMAX digital (dual 2K/4K Xenon) in 3D
+        //   'IMAX Laser GT 2D'        → IMAX dual-laser "Grand Theatre" system in 2D
+        //   'IMAX Laser GT 3D'        → IMAX dual-laser "Grand Theatre" system in 3D
+        //   'IMAX Laser Multiplex 2D' → IMAX single-laser multiplex system in 2D
+        //   'IMAX Laser Multiplex 3D' → IMAX single-laser multiplex system in 3D
+        //
+        // Other premium formats
+        //   'ScreenX'   → 270-degree multi-wall format
+        //   '4DX'       → Motion and effects seating
+        video_format: '2D',
+        video_marketing_name: "Vmax",
+
+        // Audio format (suggested enumeration):
+        // Standard formats
+        //   'Mono'           → Single channel
+        //   'Stereo'         → Left / Right
+        //   '5.1'            → Standard 6-channel surround
+        //   '7.1'            → Extended 8-channel surround
+        //
+        // Immersive / object-based formats
+        //   'Dolby Atmos'    → Dolby’s object-based format, scalable up to 64+ channels
+        //   'DTS:X'          → DTS’s object-based immersive format
+        //   'Auro 11.1'      → Barco Auro 11.1 format (3-layer channel-based)
+        //   'AuroMax'        → Extended version of Auro with object-based elements
+        //
+        // Premium brand-specific formats
+        //   'IMAX 6-Channel' → Legacy IMAX 6-track audio
+        //   'IMAX 12-Channel'→ Modern IMAX audio (with additional overhead / side channels)
+        //
+        // Other possibilities
+        //   'Sony 360RA'     → Sony 360 Reality Audio (rare in cinema, more music-oriented)
+        //   'Custom'         → Placeholder if a circuit uses proprietary or experimental systems
+        audio_format: 'Dolby Atmos',
+
+        // Accessibility flags (device support & auditorium features)
+        accessibility: {
+          // Closed captions device support available for this session
+          ccap: true,
+          ccap_languages: ["fr", "de"],  // ISO language codes for device-delivered captions
+
+          // Open-caption presentation (captions burned on screen for this showtime)
+          ocap: false,
+
+          // Descriptive narration devices available
+          descriptive_audio: true,
+
+          // Wheelchair seating available for this session
+          wheelchair: true,
+        },
+
+        // Primary spoken language (BCP-47 code)
+        language: 'en',
+
+        // Subtitles list (BCP-47 codes)
+        subtitle_languages: ['en'],
+      },
+
+      // Pricing table (session-specific; per customer category & seat class)
+      // currency: ISO 4217 (e.g., 'AUD', 'USD', 'EUR')
+      pricing: [
+        { category: 'Adult', class_id: 'STD', price: 19.5, currency: 'AUD' },
+        { category: 'Adult', class_id: 'PRM', price: 23.5, currency: 'AUD' },
+        { category: 'Adult', class_id: 'DBX', price: 27.5, currency: 'AUD' },
+        { category: 'Child', class_id: 'STD', price: 14.0, currency: 'AUD' },
+      ],
+
+      // Availability per class (snapshot). Seat-level availability should be provided by a live endpoint.
+      availability_by_class: [
+        { class_id: 'STD', seats_total: 120, seats_available: 88 },
+        { class_id: 'PRM', seats_total: 60,  seats_available: 22 },
+        { class_id: 'DBX', seats_total: 30,  seats_available: 6  },
+      ],
+
+      // Deep link to the booking flow for this session
+      booking_url: 'https://tickets.examplecinemas.com/checkout?sess=EXC-CNAME-2025-08-18-1930-S1-AVATAR3-2D',
+
+      // Change-detection fingerprint (e.g., MD5/SHA of canonical fields)
+      checksum: 'b1a9f2a6c8f14b5a9d7dce0d1f6a1c2e',
+    },
+
+    {
+      session_id: 'EXC-CNAME-2025-08-19-1330-S1-AVATAR3-3D',
+      film_id: 'FILM-AVATAR3',
+      auditorium_id: 'EXC-CNAME-S1',
+
+      preshow_start_time: '2025-08-19T13:20:00+10:00',
+      advertised_start_time: '2025-08-19T13:30:00+10:00',
+      feature_start_time: '2025-08-19T13:45:00+10:00',
+      end_time_local: '2025-08-19T16:40:00+10:00',
+
+      start_time_local: '2025-08-19T13:30:00+10:00',
+      start_time_utc: '2025-08-19T03:30:00Z',
+
+      attributes: {
+        // Example of alternate presentation formats
+        video_format: '3D',         // could be 'HFR 3D' if high frame rate
+        audio_format: '7.1',
+        accessibility: {
+          ccap: false,
+          ocap: false,
+          descriptive_audio: false,
+          wheelchair: true,
+        },
+        language: 'en',
+        subtitle_languages: [],
+      },
+
+      pricing: [
+        { category: 'Adult', class_id: 'STD', price: 21.5, currency: 'AUD' },
+        { category: 'Adult', class_id: 'PRM', price: 25.5, currency: 'AUD' },
+      ],
+
+      availability_by_class: [
+        { class_id: 'STD', seats_total: 150, seats_available: 140 },
+        { class_id: 'PRM', seats_total: 60,  seats_available: 60  },
+      ],
+
+      booking_url: 'https://tickets.examplecinemas.com/checkout?sess=EXC-CNAME-2025-08-19-1330-S1-AVATAR3-3D',
+      checksum: '2ef0cb7b2a1e4130b9ce6f9c3a4db946',
+    },
+  ],
+}
