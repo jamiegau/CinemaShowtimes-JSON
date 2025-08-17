@@ -114,6 +114,33 @@
           { type: 'theatrical',url: 'https://youtu.be/EXAMPLE3' },
         ],
       },
+      
+      // Credits: directors, producers, writers, cast (with identifiers and descriptions)
+      credits: {
+        // List of directors (each with name and identifiers)
+        directors: [
+          { name: 'Jane Doe', identifiers: { imdb: 'nm0000001', tmdb: 12345 } }
+        ],
+        // List of producers
+        producers: [
+          { name: 'Alex Smith', identifiers: { imdb: 'nm0000002' } }
+        ],
+        // List of writers (role can be specified)
+        writers: [
+          { name: 'Chris Lee', role: 'screenplay', identifiers: { imdb: 'nm0000003' } }
+        ],
+        // List of cast members (with character, order, flags, identifiers, and headshot)
+        cast: [
+          {
+            name: 'Pat Taylor',
+            character: 'Hero',
+            order: 0,                 // billing/order for display
+            voice: false,             // optional flags
+            identifiers: { imdb: 'nm0000004', tmdb: 67890 },
+            headshot_url: 'https://img.example.com/people/pat_taylor.jpg'
+          }
+        ]
+      },
     },
     {
       // A placeholder entry for a film that is not yet released but is announced.
@@ -128,7 +155,8 @@
       },
 
       runtime_minutes: null, // Unknown until release
-      rating: null,          // Will be provided once classified
+      rating: "M",          // null, Will be provided once classified, otherwise regional rating tag
+      content: "Corse language" // Classification content warning text
       languages: ["en"],     // Primary spoken languages
       distributor: "Lionsgate", // Distributor / rights holder
       

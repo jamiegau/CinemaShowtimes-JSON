@@ -1,118 +1,173 @@
 <?php
 // User can edit this array to add/override missing cinema variables
 $userCinemaOverrides = [
-    // Example: Uncomment and fill in any missing fields
-    // 'cinema_id' => 'EXC-AUS-CNAME',
-    // 'name' => 'Example Cinemas Name',
-    // 'timezone' => 'Australia/Melbourne',
-    // 'lat' => -34.8720,
-    // 'lon' => 150.6020,
-    // 'address' => '123 Princes Hwy, Port Melboourne, VIC 3207, AU',
-    // 'phone' => '+61 3 5555 1234',
-    // 'website' => 'https://examplecinemas.com/',
-    // 'google_place_id' => 'ChIJN1t_tDeuEmsRUsoyG83frY4',
-    // 'google_business_id' => '12345678901234567890'
+    'cinema_id' => 'EXC-AUS-FORBESCINEMA',
+    'name' => 'Forbes Cinema',
+    'timezone' => 'Australia/Sydney',
+    'lat' => -33.3860526,
+    'lon' => 148.0098134,
+    'address' => '41 Templar Street, Forbes, NSW 2871, AU',
+    'phone' => '+61 2 6852 14884',
+    'website' => 'https://forbescinema.com.au/',
+    'google_place_id' => 'ChIJVafZGiuNGmsRBy1AkGRlFNw',
+    'google_business_id' => '16389629735730666012'
 ];
 
-// Veezi API endpoint URL (replace with actual endpoint)
-$veeziUrl = 'https://api.veezi.com/v1/showtimes';
-$veeziApiKey = 'YOUR_VEEZI_API_KEY'; // Replace with your actual API key
+$veeziUrl_session = 'https://api.oz.veezi.com/v1/session';
+$veeziUrl_film = 'https://api.oz.veezi.com/v4/film';
+$veeziApiKey = 'b88cvh3rhcdmye5380t297cn5g';
 
-// Fetch Veezi data
 $options = [
     'http' => [
-        'header' => "X-API-KEY: $veeziApiKey\r\nAccept: application/json\r\n"
+        'header' => "VeeziAccessToken: $veeziApiKey\r\nAccept: application/json\r\n"
     ]
 ];
 $context = stream_context_create($options);
-$response = file_get_contents($veeziUrl, false, $context);
-if ($response === false) {
-    die('Error fetching Veezi API data');
+$veezi_session = file_get_contents($veeziUrl_session, false, $context);
+if ($veezi_session === false) {
+    error_log('Error fetching Veezi API session data');
+    die('Error fetching Veezi API session data');
 }
-$veeziData = json_decode($response, true);
+$veezi_session_data = json_decode($veezi_session, true);
 
-function veeziToCSTJSON($veeziData, $userCinemaOverrides) {
-    $cinema = [
-        'cinema_id' => $veeziData['cinema']['id'] ?? '',
-        'name' => $veeziData['cinema']['name'] ?? '',
-        'timezone' => $veeziData['cinema']['timezone'] ?? '',
-        'lat' => $veeziData['cinema']['lat'] ?? null,
-        'lon' => $veeziData['cinema']['lon'] ?? null,
-        'address' => $veeziData['cinema']['address'] ?? '',
-        'phone' => $veeziData['cinema']['phone'] ?? '',
-        'website' => $veeziData['cinema']['website'] ?? '',
-        'google_place_id' => $veeziData['cinema']['google_place_id'] ?? '',
-        'google_business_id' => $veeziData['cinema']['google_business_id'] ?? ''
-    ];
-    // Merge user overrides
-    $cinema = array_merge($cinema, $userCinemaOverrides);
+$veezi_film = file_get_contents($veeziUrl_film, false, $context);
+if ($veezi_film === false) {
+    error_log('Error fetching Veezi API film data');
+    die('Error fetching Veezi API film data');
+}
+$veezi_film_data = json_decode($veezi_film, true);
 
+function veeziToCSTJSON($films, $sessions, $userCinemaOverrides) {
+    $cinema = $userCinemaOverrides;
     $cst = [
         'spec' => 'cinemashowtimes-json/1.0',
         'generated_at' => gmdate('Y-m-d\TH:i:s\Z'),
         'ttl_seconds' => 900,
         'cinema' => $cinema,
         'films' => [],
-        'auditoria' => [],
+        'auditoria' => [], // Placeholder, as Veezi does not provide this directly
         'sessions' => []
     ];
 
     // Map films
-    foreach ($veeziData['films'] as $film) {
-        $cst['films'][] = [
-            'film_id' => $film['id'] ?? '',
-            'title' => $film['title'] ?? '',
-            'alt_titles' => $film['alt_titles'] ?? [],
-            'identifiers' => [
-                'eidr' => $film['eidr'] ?? null,
-                'imdb' => $film['imdb'] ?? null,
-                'isan' => $film['isan'] ?? null
-            ],
-            'runtime_minutes' => $film['runtime'] ?? null,
-            'rating' => $film['rating'] ?? null,
-            'languages' => $film['languages'] ?? [],
-            'distributor' => $film['distributor'] ?? '',
-            'assets' => $film['assets'] ?? []
+    foreach ($films as $film) {
+        // Build credits from People array
+        $credits = [
+            'directors' => [],
+            'producers' => [],
+            'writers' => [],
+            'cast' => []
         ];
-    }
-
-    // Map auditoria
-    foreach ($veeziData['auditoria'] as $aud) {
-        $cst['auditoria'][] = [
-            'auditorium_id' => $aud['id'] ?? '',
-            'name' => $aud['name'] ?? '',
-            'attributes' => $aud['attributes'] ?? [],
-            'seat_count' => $aud['seat_count'] ?? null,
-            'seat_classes' => $aud['seat_classes'] ?? [],
-            'seatmap_url' => $aud['seatmap_url'] ?? ''
+        if (!empty($film['People'])) {
+            foreach ($film['People'] as $person) {
+                $entry = [
+                    'name' => trim(($person['FirstName'] ?? '') . ' ' . ($person['LastName'] ?? '')),
+                    'identifiers' => [
+                        // Add more mappings if available
+                    ]
+                ];
+                switch (strtolower($person['Role'] ?? '')) {
+                    case 'director':
+                        $credits['directors'][] = $entry;
+                        break;
+                    case 'producer':
+                        $credits['producers'][] = $entry;
+                        break;
+                    case 'writer':
+                    case 'screenwriter':
+                    case 'screenplay':
+                        $entry['role'] = $person['Role'];
+                        $credits['writers'][] = $entry;
+                        break;
+                    case 'actor':
+                        $credits['cast'][] = $entry;
+                        break;
+                    default:
+                        // Ignore or add to a misc group if needed
+                        break;
+                }
+            }
+        }
+        $cst['films'][] = [
+            'film_id' => $film['Id'] ?? '',
+            'title' => $film['Title'] ?? '',
+            'alt_titles' => [$film['ShortName'] ?? ''],
+            'identifiers' => [
+                'eidr' => $film['EIDR'] ?? null,
+                'imdb' => $film['IMDB'] ?? null,
+                'isan' => $film['ISAN'] ?? null
+            ],
+            'runtime_minutes' => $film['Duration'] ?? null,
+            'rating' => $film['Rating'] ?? null,
+            'content' => $film['Content'] ?? '',
+            'languages' => [$film['AudioLanguage'] ?? ''],
+            'distributor' => $film['Distributor'] ?? '',
+            'assets' => [
+                'poster' => [
+                    'small' => $film['FilmPosterThumbnailUrl'] ?? '',
+                    'large' => $film['FilmPosterUrl'] ?? ''
+                ],
+                'banner' => [
+                    'wide' => $film['BannerImageUrl'] ?? ''
+                ],
+                'thumbnail' => [
+                    'square' => $film['FilmPosterThumbnailUrl'] ?? ''
+                ],
+                'backdrop' => [
+                    'large' => $film['BackdropImageUrl'] ?? ''
+                ],
+                'logo' => [
+                    'transparent' => $film['LogoImageUrl'] ?? ''
+                ],
+                'trailers' => [
+                    [ 'type' => 'official', 'url' => $film['FilmTrailerUrl'] ?? '', 'primary' => true ]
+                ]
+            ],
+            'credits' => $credits,
+            'synopsis' => $film['Synopsis'] ?? '',
+            'genre' => $film['Genre'] ?? '',
+            'release_date' => $film['OpeningDate'] ?? '',
+            'status' => 'released',
+            'format' => $film['Format'] ?? ''
         ];
     }
 
     // Map sessions
-    foreach ($veeziData['sessions'] as $sess) {
+    foreach ($sessions as $sess) {
         $cst['sessions'][] = [
-            'session_id' => $sess['id'] ?? '',
-            'film_id' => $sess['film_id'] ?? '',
-            'auditorium_id' => $sess['auditorium_id'] ?? '',
-            'preshow_start_time_local' => $sess['preshow_start_time_local'] ?? null,
-            'advertised_start_time_local' => $sess['advertised_start_time_local'] ?? null,
-            'feature_start_time_local' => $sess['feature_start_time_local'] ?? null,
-            'credits_time_local' => $sess['credits_time_local'] ?? null,
-            'end_time_local' => $sess['end_time_local'] ?? null,
-            'start_time_local' => $sess['start_time_local'] ?? null,
-            'start_time_utc' => $sess['start_time_utc'] ?? null,
-            'attributes' => $sess['attributes'] ?? [],
-            'pricing' => $sess['pricing'] ?? [],
-            'availability_by_class' => $sess['availability_by_class'] ?? [],
-            'booking_url' => $sess['booking_url'] ?? '',
-            'checksum' => $sess['checksum'] ?? ''
+            'session_id' => $sess['Id'] ?? '',
+            'film_id' => $sess['FilmId'] ?? '',
+            'auditorium_id' => $sess['ScreenId'] ?? '',
+            'preshow_start_time_local' => $sess['PreShowStartTime'] ?? '',
+            'advertised_start_time_local' => $sess['FeatureStartTime'] ?? '',
+            'feature_start_time_local' => $sess['FeatureStartTime'] ?? '',
+            'credits_time_local' => $sess['FeatureEndTime'] ?? '',
+            'end_time_local' => $sess['CleanupEndTime'] ?? '',
+            'start_time_local' => $sess['FeatureStartTime'] ?? '',
+            'start_time_utc' => '', // Veezi does not provide UTC, conversion needed if required
+            'attributes' => [
+                'video_format' => $sess['FilmFormat'] ?? '',
+                'audio_format' => '', // Not provided by Veezi
+                'accessibility' => [
+                    'ccap' => false,
+                    'ccap_languages' => [],
+                    'ocap' => false,
+                    'descriptive_audio' => false,
+                    'wheelchair' => false
+                ],
+                'language' => '', // Not provided by Veezi
+                'subtitle_languages' => []
+            ],
+            'pricing' => [], // Not provided by Veezi
+            'availability_by_class' => [], // Not provided by Veezi
+            'booking_url' => '', // Not provided by Veezi
+            'checksum' => ''
         ];
     }
     return $cst;
 }
 
-// Convert and output as JSON
-$cstJson = veeziToCSTJSON($veeziData, $userCinemaOverrides);
+$cstJson = veeziToCSTJSON($veezi_film_data, $veezi_session_data, $userCinemaOverrides);
 header('Content-Type: application/json');
 echo json_encode($cstJson, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 

@@ -52,6 +52,28 @@
           { "type": "official", "url": "https://youtu.be/EXAMPLE2", "primary": true },
           { "type": "theatrical", "url": "https://youtu.be/EXAMPLE3" }
         ]
+      },
+      "credits": {
+        "directors": [
+          {"name": "Jane Doe", "identifiers": {"imdb": "nm0000001", "tmdb": 12345}}
+        ],
+        "producers": [
+          {"name": "Alex Smith", "identifiers": {"imdb": "nm0000002"}}
+        ],
+        "writers": [
+          {"name": "Chris Lee", "role": "screenplay", "identifiers": {"imdb": "nm0000003"}}
+        ],
+        "cast": [
+          {
+            "name": "Pat Taylor",
+            "character": "Hero",
+            "order": 0,
+            "voice": false,
+            "uncredited": false,
+            "identifiers": {"imdb": "nm0000004", "tmdb": 67890},
+            "headshot_url": "https://img.example.com/people/pat_taylor.jpg"
+          }
+        ]
       }
     },
 
@@ -67,6 +89,7 @@
       },
       "runtime_minutes": null,
       "rating": null,
+      "content": null,
       "languages": ["en"],
       "distributor": "Lionsgate",
       "status": "coming_soon",
