@@ -85,7 +85,7 @@ A minima example is below.
 ```
 
 ## Conversion Example
-An example of this plugin can be found at https://forbescinema.com.au/example-showtimes-json.php which is based on the file `conversions-tools/veezi-to-CST-JSOM.php`.
+Under the directory `conversion-tools` you will find examples of easy to use conversion tools that will convert suported vendor Showtime enpoints into the CinemaShowtimes-JSON format.  Please look n that directory for more details, or the specific vendor PHP file for details on how to use it.
 
 ## Proponents
 
