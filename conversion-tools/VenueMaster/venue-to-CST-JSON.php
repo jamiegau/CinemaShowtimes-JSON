@@ -287,17 +287,25 @@ function venueMasterToCSTJSON($venueData, $userCinemaOverrides)
       }
 
       // capacity
-      if ($session['Session_Initial_Seats']) {
-        $sessionData['seating_capacity'] = $session['Session_Initial_Seats'];
+      // NOTE, Session_Initial_Seats fund in the session is NOT accurate due to moves move screens.
+      // Lookup the Auditorium based on the Session_Venue_Code, and use that to find the correct seating capacity.
+      if ($session['Session_Venue_Code']) {
+        $auditorium = array_filter($venueData['Venues'], function($a) use ($session) {
+          return $a['Venue_Code'] === $session['Session_Venue_Code'];
+        });
+        if (!empty($auditorium)) {
+          $sessionData['seating_capacity'] = reset($auditorium)['Venue_Normal_Capacity'];
+        }
       }
+      //
       if ($session['Session_Seats_Remaining']) {
         $sessionData['seats_available'] = $session['Session_Seats_Remaining'];
       }
       if ($session['Session_Initial_Seats'] && $session['Session_Seats_Remaining']) {
         $availability_by_class = [];
         $availability_by_class['class_id'] = 'standard';
-        $availability_by_class['seats_total'] = $session['Session_Initial_Seats'];
-        $availability_by_class['seats_available'] = $session['Session_Seats_Remaining'];
+        $availability_by_class['seats_total'] = $sessionData['seating_capacity'];
+        $availability_by_class['seats_available'] = $sessionData['seats_available'];
       }
       $sessionData['availability_by_class'] = $availability_by_class;
 
