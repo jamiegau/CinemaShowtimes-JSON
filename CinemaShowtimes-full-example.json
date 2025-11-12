@@ -74,7 +74,15 @@
             "headshot_url": "https://img.example.com/people/pat_taylor.jpg"
           }
         ]
-      }
+      },
+      "scores": [
+        { "source": "imdb", "score_value": 7.8, "score_scale": 10, "votes": 123456, "label": null, "metadata": null, "category": "user" },
+        { "source": "tmdb", "score_value": 7.4, "score_scale": 10, "votes": 23456, "label": null, "metadata": null, "category": "user" },
+        { "source": "rotten_tomatoes", "score_value": 85, "score_scale": 100, "votes": null, "label": "Tomatometer", "metadata": { "state": "Certified Fresh" }, "category": "critic" },
+        { "source": "rotten_tomatoes", "score_value": 90, "score_scale": 100, "votes": null, "label": "Audience", "metadata": null, "category": "audience" },
+        { "source": "metacritic", "score_value": 74, "score_scale": 100, "votes": null, "label": "Critic", "metadata": null, "category": "critic" },
+        { "source": "metacritic", "score_value": 7.2, "score_scale": 10, "votes": null, "label": "User", "metadata": null, "category": "user" }
+      ]
     },
 
     {
@@ -114,7 +122,15 @@
         "trailers": [
           { "type": "announcement", "url": "https://youtu.be/EX_ANNOUNCE_JW5" }
         ]
-      }
+      },
+      "scores": [
+        { "source": "imdb", "score_value": 8.1, "score_scale": 10, "votes": 4523, "label": null, "metadata": null, "category": "user" },
+        { "source": "tmdb", "score_value": 7.6, "score_scale": 10, "votes": 1200, "label": null, "metadata": null, "category": "user" },
+        { "source": "rotten_tomatoes", "score_value": 78, "score_scale": 100, "votes": null, "label": "Tomatometer", "metadata": null, "category": "critic" },
+        { "source": "rotten_tomatoes", "score_value": 85, "score_scale": 100, "votes": null, "label": "Audience", "metadata": null, "category": "audience" },
+        { "source": "metacritic", "score_value": 70, "score_scale": 100, "votes": null, "label": "Critic", "metadata": null, "category": "critic" },
+        { "source": "metacritic", "score_value": 7.2, "score_scale": 10, "votes": null, "label": "User", "metadata": null, "category": "user" }
+      ]
     }
   ],
 

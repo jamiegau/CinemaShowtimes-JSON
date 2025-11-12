@@ -202,7 +202,7 @@
 
       runtime_minutes: null, // Unknown until release
       rating: "M",          // null, Will be provided once classified, otherwise regional rating tag
-      content: "Corse language" // Classification content warning text
+      content: "Corse language", // Classification content warning text
       languages: ["en"],     // Primary spoken languages
       distributor: "Lionsgate", // Distributor / rights holder
       
@@ -233,7 +233,17 @@
             url: "https://youtu.be/EX_ANNOUNCE_JW5" // Trailer link
           }
         ]
-      }
+      },
+
+      // Example aggregated scores for the upcoming title
+      scores: [
+        { source: 'imdb', score_value: 8.1, score_scale: 10, votes: 4523, label: null, metadata: null, category: 'user' },
+        { source: 'tmdb', score_value: 7.6, score_scale: 10, votes: 1200, label: null, metadata: null, category: 'user' },
+        { source: 'rotten_tomatoes', score_value: 78, score_scale: 100, votes: null, label: 'Tomatometer', metadata: null, category: 'critic' },
+        { source: 'rotten_tomatoes', score_value: 85, score_scale: 100, votes: null, label: 'Audience', metadata: null, category: 'audience' },
+        { source: 'metacritic', score_value: 70, score_scale: 100, votes: null, label: 'Critic', metadata: null, category: 'critic' },
+        { source: 'metacritic', score_value: 7.2, score_scale: 10, votes: null, label: 'User', metadata: null, category: 'user' }
+      ]
     }
   ],
 
