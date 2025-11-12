@@ -163,6 +163,30 @@
           }
         ]
       },
+
+      // New: aggregate scores from common sources
+      // Normalized list of score rows — easier to map to a DB table (film_scores).
+      // Example DB columns: film_id, source, score_value, score_scale, votes, label, metadata, catagory
+      scores: [
+        // IMDB (user scores)
+        { source: 'imdb', score_value: 7.8, score_scale: 10, votes: 123456, label: null,
+         metadata: null, category: 'user' },
+        // TMDB (user scores / aggregate)
+        { source: 'tmdb', score_value: 7.4, score_scale: 10, votes: 23456, label: null,
+         metadata: null, category: 'user' },
+        // Rotten Tomatoes (critic %)
+        { source: 'rotten_tomatoes', score_value: 85, score_scale: 100, votes: null, label: 'Tomatometer',
+         metadata: { state: 'Certified Fresh' }, category: 'critic' },
+        // Rotten Tomatoes (audience %)
+        { source: 'rotten_tomatoes', score_value: 90, score_scale: 100, votes: null, label: 'Audience',
+         metadata: null , category: 'audience' },
+        // Metacritic: critic (percent)
+        { source: 'metacritic', score_value: 74,  score_scale: 100, votes: null, label: 'Critic',
+         metadata: null, category: 'critic' },
+        // Metacritic: user (normalized to /10 scale here)
+        { source: 'metacritic', score_value: 7.2, score_scale: 10,  votes: null, label: 'User',
+           metadata: null, category: 'user' },
+      ],
     },
     {
       // A placeholder entry for a film that is not yet released but is announced.
@@ -265,8 +289,6 @@
     },
   ],
 
-  // ------------------------------------------------------------------------------------------------
-  // SESSIONS (individual showtimes; pricing & availability per class; detailed timing)
   // ------------------------------------------------------------------------------------------------
   sessions: [
     {
