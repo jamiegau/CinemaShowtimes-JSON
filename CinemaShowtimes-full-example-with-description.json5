@@ -31,6 +31,9 @@
     // Public phone number (E.164 recommended)
     phone: '+61 3 5555 1234',
 
+    // Email address
+    email: 'hello@examplecinema.com',
+
     // Public website/homepage for the cinema
     website: 'https://examplecinemas.com/',
 

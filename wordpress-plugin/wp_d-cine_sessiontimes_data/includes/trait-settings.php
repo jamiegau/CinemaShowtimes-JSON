@@ -30,6 +30,9 @@ trait WP_DCine_Settings_Trait
 
     $out['endpoint_url'] = isset($input['endpoint_url']) ? esc_url_raw($input['endpoint_url']) : '';
     $out['api_key'] = isset($input['api_key']) ? sanitize_text_field($input['api_key']) : '';
+  // Local endpoint (a URL on this WP server that can serve the JSON payload)
+  $out['local_endpoint'] = isset($input['local_endpoint']) ? esc_url_raw($input['local_endpoint']) : '';
+  $out['local_api_key'] = isset($input['local_api_key']) ? sanitize_text_field($input['local_api_key']) : '';
     $out['auto_mode'] = isset($input['auto_mode']) && $input['auto_mode'] ? '1' : '0';
     $mins = isset($input['interval_minutes']) ? intval($input['interval_minutes']) : 15;
     if ($mins < 1)
@@ -58,13 +61,22 @@ trait WP_DCine_Settings_Trait
 
   public function settings_page()
   {
-    $opts = get_option($this->option_name, array('endpoint_url' => '', 'api_key' => '', 'auto_mode' => '0', 'interval_minutes' => 15));
+    $opts = get_option($this->option_name, array(
+      'endpoint_url' => '',
+      'api_key' => '',
+  // sensible default for local endpoint on this WP site (relative path)
+  'local_endpoint' => '/wp-json/cine/v1/sessiontimes',
+      'local_api_key' => '',
+      'auto_mode' => '0',
+      'interval_minutes' => 15
+    ));
     ?>
     <div class="wrap">
-      <h1>Cine Sessiontimes Settings</h1>
+      <h1>d-Cine Sessiontimes Settings</h1>
       <form method="post" action="options.php">
         <?php settings_fields($this->option_name);
         do_settings_sections($this->option_name); ?>
+        <h2>Remote</h2>
         <table class="form-table">
           <tr>
             <th scope="row"><label for="endpoint_url">Endpoint URL</label></th>
@@ -72,7 +84,7 @@ trait WP_DCine_Settings_Trait
                 value="<?php echo esc_attr($opts['endpoint_url']); ?>" class="regular-text" /></td>
           </tr>
           <tr>
-            <th scope="row"><label for="api_key">API Key</label></th>
+            <th scope="row"><label for="api_key">Auth Key</label></th>
             <td><input name="<?php echo $this->option_name; ?>[api_key]" type="text" id="api_key"
                 value="<?php echo esc_attr($opts['api_key']); ?>" class="regular-text" /></td>
           </tr>
@@ -87,6 +99,23 @@ trait WP_DCine_Settings_Trait
             <th scope="row"><label for="interval_minutes">Interval (minutes)</label></th>
             <td><input name="<?php echo $this->option_name; ?>[interval_minutes]" type="number" id="interval_minutes"
                 value="<?php echo esc_attr($opts['interval_minutes']); ?>" min="1" max="60" /></td>
+          </tr>
+        </table>
+
+        <h2>Local</h2>
+        <table class="form-table">
+          <tr>
+            <th scope="row"><label for="local_endpoint">Local Endpoint (this WP site)</label></th>
+      <td><input name="<?php echo $this->option_name; ?>[local_endpoint]" type="url" id="local_endpoint"
+        value="<?php echo esc_attr($opts['local_endpoint']); ?>" placeholder="/wp-json/cine/v1/sessiontimes" class="regular-text" />
+              <p class="description">A URL on this site (or another internal URL) that will serve the CinemaShowtimes JSON.</p>
+            </td>
+          </tr>
+          <tr>
+            <th scope="row"><label for="local_api_key">API Key</label></th>
+            <td><input name="<?php echo $this->option_name; ?>[local_api_key]" type="text" id="local_api_key"
+                value="<?php echo esc_attr($opts['local_api_key']); ?>" class="regular-text" />
+            </td>
           </tr>
         </table>
         <?php submit_button(); ?>
