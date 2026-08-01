@@ -15,7 +15,12 @@ $userCinemaOverrides = [
 
 $veeziUrl_session = 'https://api.oz.veezi.com/v1/session';
 $veeziUrl_film = 'https://api.oz.veezi.com/v4/film';
-$veeziApiKey = 'b88cvh3rhcdmye5380t297cn5g';
+$veeziApiKey = getenv('VEEZI_API_KEY');
+if ($veeziApiKey === false || trim($veeziApiKey) === '') {
+    http_response_code(500);
+    error_log('VEEZI_API_KEY is not configured');
+    die('Veezi API credentials are not configured');
+}
 
 $options = [
     'http' => [

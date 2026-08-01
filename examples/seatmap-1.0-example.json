@@ -1,0 +1,63 @@
+{
+  "spec": "cinemashowtimes-seatmap/1.0",
+  "auditorium_id": "EXC-PMELB-S1",
+  "layout_id": "EXC-PMELB-S1-LAYOUT",
+  "version": "3",
+  "updated_at": "2026-06-10T00:00:00Z",
+  "coordinate_system": {
+    "width": 1000,
+    "height": 700,
+    "origin": "top_left",
+    "unit": "abstract"
+  },
+  "screen": {
+    "x": 150,
+    "y": 30,
+    "width": 700,
+    "label": "SCREEN"
+  },
+  "sections": [
+    {
+      "section_id": "MAIN",
+      "name": "Main floor",
+      "rows": [
+        {
+          "row_id": "A",
+          "label": "A",
+          "seats": [
+            {
+              "seat_id": "A1",
+              "label": "1",
+              "x": 320,
+              "y": 170,
+              "type": "wheelchair_space",
+              "class_id": "STD",
+              "features": ["aisle", "removable"],
+              "paired_with": ["A2"]
+            },
+            {
+              "seat_id": "A2",
+              "label": "2",
+              "x": 380,
+              "y": 170,
+              "type": "companion",
+              "class_id": "STD",
+              "features": [],
+              "paired_with": ["A1"]
+            },
+            {
+              "seat_id": "A3",
+              "label": "3",
+              "x": 440,
+              "y": 170,
+              "type": "seat",
+              "class_id": "PRM",
+              "features": ["recliner"]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "notes": "This document describes physical layout only. Query the session availability_url for live sale state."
+}

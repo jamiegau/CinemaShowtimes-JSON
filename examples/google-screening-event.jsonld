@@ -1,0 +1,93 @@
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "MovieTheater",
+      "@id": "https://examplecinemas.com/cinemas/port-melbourne#cinema",
+      "name": "Example Cinemas Port Melbourne",
+      "url": "https://examplecinemas.com/cinemas/port-melbourne",
+      "telephone": "+61 3 5555 1234",
+      "email": "cinema@examplecinemas.com",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "123 Example Street",
+        "addressLocality": "Port Melbourne",
+        "addressRegion": "VIC",
+        "postalCode": "3207",
+        "addressCountry": "AU"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": -37.833,
+        "longitude": 144.933
+      },
+      "sameAs": [
+        "https://www.google.com/maps/search/?api=1&query_place_id=ChIJN1t_tDeuEmsRUsoyG83frY4&query=Example%20Cinemas"
+      ],
+      "identifier": {
+        "@type": "PropertyValue",
+        "propertyID": "google_place_id",
+        "value": "ChIJN1t_tDeuEmsRUsoyG83frY4"
+      }
+    },
+    {
+      "@type": "Movie",
+      "@id": "https://examplecinemas.com/movies/the-example-feature#movie",
+      "url": "https://examplecinemas.com/movies/the-example-feature",
+      "name": "The Example Feature",
+      "description": "A fictional feature used to demonstrate portable cinema metadata.",
+      "duration": "PT1H58M",
+      "contentRating": "AU:M",
+      "inLanguage": "en",
+      "genre": ["Drama", "Adventure"],
+      "image": [
+        "https://img.examplecinemas.com/movies/example-poster-1000x1500.jpg"
+      ],
+      "sameAs": [
+        "https://www.imdb.com/title/tt12345678/"
+      ],
+      "director": {
+        "@type": "Person",
+        "name": "Jane Example"
+      }
+    },
+    {
+      "@type": "ScreeningEvent",
+      "@id": "https://examplecinemas.com/sessions/EXC-PMELB-20260801-1930-S1-FILM001#event",
+      "url": "https://examplecinemas.com/sessions/EXC-PMELB-20260801-1930-S1-FILM001",
+      "name": "The Example Feature at Example Cinemas Port Melbourne",
+      "description": "A 2D laser presentation with closed captions, audio description and wheelchair spaces.",
+      "startDate": "2026-08-01T19:30:00+10:00",
+      "endDate": "2026-08-01T21:43:00+10:00",
+      "eventStatus": "https://schema.org/EventScheduled",
+      "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+      "location": {
+        "@id": "https://examplecinemas.com/cinemas/port-melbourne#cinema"
+      },
+      "workPresented": {
+        "@id": "https://examplecinemas.com/movies/the-example-feature#movie"
+      },
+      "inLanguage": "en",
+      "videoFormat": "2D",
+      "image": [
+        "https://img.examplecinemas.com/movies/example-poster-1000x1500.jpg"
+      ],
+      "offers": [
+        {
+          "@type": "Offer",
+          "name": "Adult standard",
+          "url": "https://tickets.examplecinemas.com/checkout?session=EXC-PMELB-20260801-1930-S1-FILM001",
+          "price": 19.5,
+          "priceCurrency": "AUD",
+          "availability": "https://schema.org/InStock",
+          "validFrom": "2026-07-20T09:00:00+10:00"
+        }
+      ],
+      "organizer": {
+        "@type": "Organization",
+        "name": "Example Cinemas",
+        "url": "https://examplecinemas.com/"
+      }
+    }
+  ]
+}

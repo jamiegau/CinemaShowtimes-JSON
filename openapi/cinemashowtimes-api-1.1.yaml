@@ -1,0 +1,314 @@
+openapi: 3.1.0
+info:
+  title: CinemaShowtimes discovery API
+  version: 1.1.0
+  license:
+    name: MIT
+    identifier: MIT
+  description: |
+    Recommended read-only HTTP profile for CinemaShowtimes-JSON 1.1.
+    Booking, payment and reservation mutation are deliberately out of scope.
+servers:
+  - url: https://api.examplecinemas.com
+security: []
+paths:
+  /showtimes:
+    get:
+      operationId: searchShowtimes
+      summary: Search cinemas, films and screening sessions
+      description: |
+        Aggregator responses use the top-level cinemas array and put cinema_id
+        on every session. Single-venue responses may use the legacy singular
+        cinema object.
+      parameters:
+        - $ref: '#/components/parameters/Latitude'
+        - $ref: '#/components/parameters/Longitude'
+        - $ref: '#/components/parameters/Radius'
+        - $ref: '#/components/parameters/StartsAfter'
+        - $ref: '#/components/parameters/StartsBefore'
+        - $ref: '#/components/parameters/Film'
+        - $ref: '#/components/parameters/Accessibility'
+        - $ref: '#/components/parameters/Format'
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: A complete or filtered CinemaShowtimes-JSON document
+          headers:
+            ETag:
+              schema:
+                type: string
+            Last-Modified:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: ../schema/cinemashowtimes-json-1.1.schema.json
+        '400':
+          $ref: '#/components/responses/Problem'
+        '429':
+          $ref: '#/components/responses/Problem'
+  /changes:
+    get:
+      operationId: getShowtimeChanges
+      summary: Read changed entities and tombstones after a sequence
+      parameters:
+        - name: since
+          in: query
+          required: true
+          description: Last sequence successfully applied by the consumer.
+          schema:
+            type: integer
+            minimum: 0
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: A CinemaShowtimes-JSON document with mode set to delta
+          content:
+            application/json:
+              schema:
+                $ref: ../schema/cinemashowtimes-json-1.1.schema.json
+        '400':
+          $ref: '#/components/responses/Problem'
+        '410':
+          description: Sequence is no longer retained; fetch the full feed.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /sessions/{session_id}:
+    get:
+      operationId: getSession
+      summary: Read one screening session
+      parameters:
+        - $ref: '#/components/parameters/SessionId'
+      responses:
+        '200':
+          description: Current public screening details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+        '404':
+          $ref: '#/components/responses/Problem'
+  /sessions/{session_id}/availability:
+    get:
+      operationId: getSessionAvailability
+      summary: Read a fresh session-level or seat-level availability snapshot
+      description: |
+        This endpoint remains a snapshot. The booking system is authoritative at
+        purchase time. It must not expose reservation owners or patron data.
+      parameters:
+        - $ref: '#/components/parameters/SessionId'
+      responses:
+        '200':
+          description: Timestamped live availability
+          headers:
+            ETag:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LiveAvailability'
+        '404':
+          $ref: '#/components/responses/Problem'
+  /auditoria/{auditorium_id}/seatmap:
+    get:
+      operationId: getAuditoriumSeatmap
+      summary: Read the versioned physical seat layout
+      parameters:
+        - name: auditorium_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Static auditorium layout without live sale state
+          content:
+            application/json:
+              schema:
+                $ref: ../schema/cinemashowtimes-seatmap-1.0.schema.json
+        '404':
+          $ref: '#/components/responses/Problem'
+components:
+  parameters:
+    Latitude:
+      name: latitude
+      in: query
+      schema:
+        type: number
+        minimum: -90
+        maximum: 90
+    Longitude:
+      name: longitude
+      in: query
+      schema:
+        type: number
+        minimum: -180
+        maximum: 180
+    Radius:
+      name: radius_km
+      in: query
+      description: Search radius in kilometres. Requires latitude and longitude.
+      schema:
+        type: number
+        exclusiveMinimum: 0
+        maximum: 500
+    StartsAfter:
+      name: starts_after
+      in: query
+      schema:
+        type: string
+        format: date-time
+    StartsBefore:
+      name: starts_before
+      in: query
+      schema:
+        type: string
+        format: date-time
+    Film:
+      name: film
+      in: query
+      description: Stable film ID or a search string.
+      schema:
+        type: string
+    Accessibility:
+      name: accessibility
+      in: query
+      description: Repeat for AND semantics.
+      schema:
+        type: array
+        items:
+          enum:
+            - wheelchair_spaces
+            - closed_captions
+            - open_captions
+            - audio_description
+            - assistive_listening
+            - hearing_loop
+            - sign_language
+      style: form
+      explode: true
+    Format:
+      name: format
+      in: query
+      description: Presentation format or marketing name, such as 2D, 3D or IMAX.
+      schema:
+        type: string
+    Cursor:
+      name: cursor
+      in: query
+      description: Opaque stable pagination cursor returned by the server.
+      schema:
+        type: string
+    Limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 500
+        default: 100
+    SessionId:
+      name: session_id
+      in: path
+      required: true
+      schema:
+        type: string
+  responses:
+    Problem:
+      description: Request could not be completed.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+  schemas:
+    Session:
+      type: object
+      required:
+        - session_id
+        - film_id
+        - canonical_url
+        - status
+        - start_time
+      properties:
+        session_id:
+          type: string
+        film_id:
+          type: string
+        auditorium_id:
+          type: string
+        canonical_url:
+          type: string
+          format: uri
+        status:
+          enum: [scheduled, cancelled, postponed, rescheduled]
+        start_time:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      additionalProperties: true
+    LiveAvailability:
+      type: object
+      required:
+        - session_id
+        - observed_at
+        - status
+      properties:
+        session_id:
+          type: string
+        observed_at:
+          type: string
+          format: date-time
+        expires_at:
+          type: string
+          format: date-time
+        status:
+          enum: [on_sale, off_sale, limited, sold_out, cancelled, unknown]
+        seats_total:
+          type: integer
+          minimum: 0
+        seats_available:
+          type: integer
+          minimum: 0
+        places:
+          type: array
+          items:
+            type: object
+            required: [seat_id, state]
+            properties:
+              seat_id:
+                type: string
+              state:
+                enum: [available, unavailable, held, selected, unknown]
+              offer_ids:
+                type: array
+                items:
+                  type: string
+            additionalProperties: true
+      additionalProperties: true
+    Problem:
+      type: object
+      required: [type, title, status]
+      properties:
+        type:
+          type: string
+          format: uri-reference
+        title:
+          type: string
+        status:
+          type: integer
+          minimum: 400
+          maximum: 599
+        detail:
+          type: string
+        instance:
+          type: string
+          format: uri-reference
+      additionalProperties: true

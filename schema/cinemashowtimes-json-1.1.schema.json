@@ -1,0 +1,679 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cinemashowtimes.org/schema/cinemashowtimes-json-1.1.schema.json",
+  "title": "CinemaShowtimes-JSON 1.1",
+  "description": "Portable cinema, film, auditorium, screening, offer and discovery metadata.",
+  "type": "object",
+  "required": ["spec", "feed_id", "mode", "generated_at", "publisher"],
+  "properties": {
+    "spec": { "const": "cinemashowtimes-json/1.1" },
+    "feed_id": { "$ref": "#/$defs/id" },
+    "mode": { "enum": ["full", "delta"] },
+    "sequence": { "type": "integer", "minimum": 0 },
+    "generated_at": { "$ref": "#/$defs/dateTime" },
+    "expires_at": { "$ref": "#/$defs/dateTime" },
+    "ttl_seconds": { "type": "integer", "minimum": 0 },
+    "language": { "$ref": "#/$defs/language" },
+    "license": { "type": "string", "format": "uri" },
+    "canonical_url": { "type": "string", "format": "uri" },
+    "publisher": { "$ref": "#/$defs/organization" },
+    "links": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/link" }
+    },
+    "cinema": { "$ref": "#/$defs/cinema" },
+    "cinemas": {
+      "description": "Use for multi-venue and aggregator feeds. A single-venue feed may use cinema.",
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/cinema" }
+    },
+    "films": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/film" }
+    },
+    "auditoria": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/auditorium" }
+    },
+    "sessions": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/session" }
+    },
+    "deleted": {
+      "description": "Tombstones used only by delta feeds.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["entity_type", "entity_id", "deleted_at"],
+        "properties": {
+          "entity_type": { "enum": ["film", "auditorium", "session"] },
+          "entity_id": { "$ref": "#/$defs/id" },
+          "deleted_at": { "$ref": "#/$defs/dateTime" },
+          "reason": { "type": "string" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "extensions": { "type": "object" }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "mode": { "const": "full" } },
+        "required": ["mode"]
+      },
+      "then": {
+        "properties": {
+          "films": {
+            "type": "array",
+            "items": { "$ref": "#/$defs/film" }
+          }
+        },
+        "required": ["films"],
+        "oneOf": [
+          {
+            "properties": {
+              "cinema": { "$ref": "#/$defs/cinema" }
+            },
+            "required": ["cinema"]
+          },
+          {
+            "properties": {
+              "cinemas": {
+                "type": "array",
+                "minItems": 1,
+                "items": { "$ref": "#/$defs/cinema" }
+              }
+            },
+            "required": ["cinemas"]
+          }
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "cinemas": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "$ref": "#/$defs/cinema" }
+          }
+        },
+        "required": ["cinemas"]
+      },
+      "then": {
+        "properties": {
+          "sessions": {
+            "type": "array",
+            "items": {
+              "allOf": [
+                { "$ref": "#/$defs/session" },
+                {
+                  "properties": {
+                    "cinema_id": { "$ref": "#/$defs/id" }
+                  },
+                  "required": ["cinema_id"]
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "mode": { "const": "delta" } },
+        "required": ["mode"]
+      },
+      "then": {
+        "properties": {
+          "sequence": { "type": "integer", "minimum": 0 }
+        },
+        "required": ["sequence"]
+      }
+    }
+  ],
+  "additionalProperties": true,
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 255
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "dateTime": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "language": {
+      "description": "BCP 47 language tag.",
+      "type": "string",
+      "pattern": "^[A-Za-z]{2,8}(-[A-Za-z0-9]{1,8})*$"
+    },
+    "country": {
+      "description": "ISO 3166-1 alpha-2 country code.",
+      "type": "string",
+      "pattern": "^[A-Z]{2}$"
+    },
+    "currency": {
+      "description": "ISO 4217 currency code.",
+      "type": "string",
+      "pattern": "^[A-Z]{3}$"
+    },
+    "link": {
+      "type": "object",
+      "required": ["rel", "href"],
+      "properties": {
+        "rel": {
+          "enum": [
+            "self", "canonical", "schema", "documentation", "alternate",
+            "delta", "openapi", "mcp", "calendar", "jsonld",
+            "booking", "seatmap", "availability"
+          ]
+        },
+        "href": { "type": "string", "format": "uri" },
+        "type": { "type": "string" },
+        "hreflang": { "$ref": "#/$defs/language" },
+        "title": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "identifierMap": {
+      "type": "object",
+      "description": "Identifiers keyed by namespace, for example eidr, imdb, tmdb, isan, numero or google_knowledge_graph.",
+      "additionalProperties": {
+        "type": ["string", "integer", "null"]
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "properties": {
+        "source_id": { "$ref": "#/$defs/id" },
+        "source_name": { "type": "string" },
+        "source_url": { "type": "string", "format": "uri" },
+        "retrieved_at": { "$ref": "#/$defs/dateTime" },
+        "updated_at": { "$ref": "#/$defs/dateTime" },
+        "method": { "enum": ["authoritative", "licensed", "manual", "derived", "aggregated"] }
+      },
+      "additionalProperties": true
+    },
+    "organization": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "organization_id": { "$ref": "#/$defs/id" },
+        "name": { "type": "string", "minLength": 1 },
+        "url": { "type": "string", "format": "uri" },
+        "logo_url": { "type": "string", "format": "uri" },
+        "same_as": {
+          "type": "array",
+          "items": { "type": "string", "format": "uri" },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "postalAddress": {
+      "type": "object",
+      "required": ["country"],
+      "properties": {
+        "street_address": { "type": "string" },
+        "locality": { "type": "string" },
+        "region": { "type": "string" },
+        "postal_code": { "type": "string" },
+        "country": { "$ref": "#/$defs/country" },
+        "formatted": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "openingHours": {
+      "type": "object",
+      "required": ["days", "opens", "closes"],
+      "properties": {
+        "days": {
+          "type": "array",
+          "items": { "enum": ["mo", "tu", "we", "th", "fr", "sa", "su"] },
+          "uniqueItems": true
+        },
+        "opens": { "type": "string", "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$" },
+        "closes": { "type": "string", "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$" },
+        "valid_from": { "$ref": "#/$defs/date" },
+        "valid_until": { "$ref": "#/$defs/date" }
+      },
+      "additionalProperties": true
+    },
+    "cinema": {
+      "type": "object",
+      "required": ["cinema_id", "name", "timezone"],
+      "properties": {
+        "cinema_id": { "$ref": "#/$defs/id" },
+        "name": { "type": "string", "minLength": 1 },
+        "canonical_url": { "type": "string", "format": "uri" },
+        "timezone": {
+          "description": "IANA time-zone name.",
+          "type": "string",
+          "minLength": 1
+        },
+        "location": {
+          "type": "object",
+          "required": ["latitude", "longitude"],
+          "properties": {
+            "latitude": { "type": "number", "minimum": -90, "maximum": 90 },
+            "longitude": { "type": "number", "minimum": -180, "maximum": 180 }
+          },
+          "additionalProperties": false
+        },
+        "postal_address": { "$ref": "#/$defs/postalAddress" },
+        "address": {
+          "description": "Legacy formatted address. Prefer postal_address.",
+          "type": "string"
+        },
+        "phone": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "website": { "type": "string", "format": "uri" },
+        "operator": { "$ref": "#/$defs/organization" },
+        "same_as": {
+          "type": "array",
+          "items": { "type": "string", "format": "uri" },
+          "uniqueItems": true
+        },
+        "identifiers": { "$ref": "#/$defs/identifierMap" },
+        "google_place_id": { "type": "string" },
+        "google_place_id_verified_at": { "$ref": "#/$defs/dateTime" },
+        "opening_hours": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/openingHours" }
+        },
+        "special_hours": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["date", "closed"],
+            "properties": {
+              "date": { "$ref": "#/$defs/date" },
+              "closed": { "type": "boolean" },
+              "opens": { "type": "string" },
+              "closes": { "type": "string" }
+            },
+            "additionalProperties": true
+          }
+        },
+        "accessibility": { "$ref": "#/$defs/accessibility" },
+        "updated_at": { "$ref": "#/$defs/dateTime" },
+        "provenance": { "$ref": "#/$defs/provenance" }
+      },
+      "additionalProperties": true
+    },
+    "person": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string" },
+        "role": { "type": "string" },
+        "character": { "type": "string" },
+        "order": { "type": "integer", "minimum": 0 },
+        "identifiers": { "$ref": "#/$defs/identifierMap" },
+        "same_as": {
+          "type": "array",
+          "items": { "type": "string", "format": "uri" }
+        }
+      },
+      "additionalProperties": true
+    },
+    "classification": {
+      "type": "object",
+      "required": ["territory", "code"],
+      "properties": {
+        "territory": { "$ref": "#/$defs/country" },
+        "system": { "type": "string" },
+        "code": { "type": "string" },
+        "consumer_advice": { "type": "string" },
+        "minimum_age": { "type": "integer", "minimum": 0 },
+        "source_url": { "type": "string", "format": "uri" }
+      },
+      "additionalProperties": true
+    },
+    "release": {
+      "type": "object",
+      "required": ["territory", "date"],
+      "properties": {
+        "territory": { "$ref": "#/$defs/country" },
+        "date": { "$ref": "#/$defs/date" },
+        "type": { "enum": ["theatrical", "festival", "premiere", "reissue", "streaming", "other"] },
+        "distributor": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "rights": {
+      "type": "object",
+      "properties": {
+        "holder": { "type": "string" },
+        "license_url": { "type": "string", "format": "uri" },
+        "credit": { "type": "string" },
+        "allowed_uses": {
+          "type": "array",
+          "items": { "enum": ["web", "search", "social", "paid_social", "signage", "press", "other"] },
+          "uniqueItems": true
+        },
+        "territories": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/country" }
+        },
+        "valid_from": { "$ref": "#/$defs/dateTime" },
+        "valid_until": { "$ref": "#/$defs/dateTime" }
+      },
+      "additionalProperties": true
+    },
+    "media": {
+      "type": "object",
+      "required": ["media_id", "kind", "role", "url"],
+      "properties": {
+        "media_id": { "$ref": "#/$defs/id" },
+        "kind": { "enum": ["image", "video", "audio", "document"] },
+        "role": {
+          "enum": ["poster", "backdrop", "banner", "thumbnail", "logo", "trailer", "teaser", "social", "clip", "caption", "transcript", "other"]
+        },
+        "url": { "type": "string", "format": "uri" },
+        "mime_type": { "type": "string" },
+        "width": { "type": "integer", "minimum": 1 },
+        "height": { "type": "integer", "minimum": 1 },
+        "duration_seconds": { "type": "number", "minimum": 0 },
+        "sha256": { "type": "string", "pattern": "^[A-Fa-f0-9]{64}$" },
+        "language": { "$ref": "#/$defs/language" },
+        "alt_text": { "type": "string" },
+        "caption_url": { "type": "string", "format": "uri" },
+        "transcript_url": { "type": "string", "format": "uri" },
+        "primary": { "type": "boolean" },
+        "platform_hints": {
+          "type": "array",
+          "items": { "enum": ["web", "google", "facebook", "instagram", "tiktok", "pinterest", "youtube", "other"] },
+          "uniqueItems": true
+        },
+        "rights": { "$ref": "#/$defs/rights" },
+        "updated_at": { "$ref": "#/$defs/dateTime" }
+      },
+      "additionalProperties": true
+    },
+    "film": {
+      "type": "object",
+      "required": ["film_id", "title"],
+      "properties": {
+        "film_id": { "$ref": "#/$defs/id" },
+        "title": { "type": "string", "minLength": 1 },
+        "canonical_url": { "type": "string", "format": "uri" },
+        "description": { "type": "string" },
+        "short_description": { "type": "string", "maxLength": 500 },
+        "alt_titles": { "type": "array", "items": { "type": "string" } },
+        "same_as": {
+          "type": "array",
+          "items": { "type": "string", "format": "uri" },
+          "uniqueItems": true
+        },
+        "identifiers": { "$ref": "#/$defs/identifierMap" },
+        "runtime_minutes": { "type": ["integer", "null"], "minimum": 1 },
+        "status": { "enum": ["announced", "coming_soon", "now_showing", "ended", "cancelled"] },
+        "original_language": { "$ref": "#/$defs/language" },
+        "languages": { "type": "array", "items": { "$ref": "#/$defs/language" } },
+        "genres": { "type": "array", "items": { "type": "string" } },
+        "keywords": { "type": "array", "items": { "type": "string" } },
+        "classifications": { "type": "array", "items": { "$ref": "#/$defs/classification" } },
+        "releases": { "type": "array", "items": { "$ref": "#/$defs/release" } },
+        "credits": {
+          "type": "object",
+          "properties": {
+            "directors": { "type": "array", "items": { "$ref": "#/$defs/person" } },
+            "producers": { "type": "array", "items": { "$ref": "#/$defs/person" } },
+            "writers": { "type": "array", "items": { "$ref": "#/$defs/person" } },
+            "cast": { "type": "array", "items": { "$ref": "#/$defs/person" } }
+          },
+          "additionalProperties": true
+        },
+        "media": { "type": "array", "items": { "$ref": "#/$defs/media" } },
+        "marketing": {
+          "type": "object",
+          "properties": {
+            "headline": { "type": "string" },
+            "call_to_action": { "type": "string" },
+            "hashtags": { "type": "array", "items": { "type": "string" } },
+            "audience_tags": { "type": "array", "items": { "type": "string" } },
+            "campaign_labels": { "type": "object", "additionalProperties": { "type": "string" } }
+          },
+          "additionalProperties": true
+        },
+        "localized": {
+          "description": "Localized overrides keyed by BCP 47 language tag.",
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "title": { "type": "string" },
+              "description": { "type": "string" },
+              "short_description": { "type": "string" }
+            },
+            "additionalProperties": true
+          }
+        },
+        "updated_at": { "$ref": "#/$defs/dateTime" },
+        "provenance": { "$ref": "#/$defs/provenance" }
+      },
+      "additionalProperties": true
+    },
+    "accessibility": {
+      "type": "object",
+      "properties": {
+        "wheelchair_spaces": { "type": "boolean" },
+        "companion_seating": { "type": "boolean" },
+        "step_free_access": { "type": "boolean" },
+        "closed_captions": { "type": "boolean" },
+        "open_captions": { "type": "boolean" },
+        "audio_description": { "type": "boolean" },
+        "assistive_listening": { "type": "boolean" },
+        "hearing_loop": { "type": "boolean" },
+        "sign_language": { "type": "boolean" },
+        "caption_languages": { "type": "array", "items": { "$ref": "#/$defs/language" } },
+        "audio_description_languages": { "type": "array", "items": { "$ref": "#/$defs/language" } },
+        "notes": { "type": "string" },
+        "confirmation_url": { "type": "string", "format": "uri" }
+      },
+      "additionalProperties": true
+    },
+    "auditorium": {
+      "type": "object",
+      "required": ["auditorium_id", "name"],
+      "properties": {
+        "auditorium_id": { "$ref": "#/$defs/id" },
+        "name": { "type": "string" },
+        "seat_count": { "type": "integer", "minimum": 0 },
+        "seating_mode": { "enum": ["reserved", "general_admission", "mixed"] },
+        "attributes": { "type": "array", "items": { "type": "string" } },
+        "accessibility": { "$ref": "#/$defs/accessibility" },
+        "screen": {
+          "type": "object",
+          "properties": {
+            "width": { "type": "number", "exclusiveMinimum": 0 },
+            "unit": { "enum": ["m", "ft"] },
+            "native_aspect_ratio": { "type": "string" },
+            "masking": { "enum": ["fixed", "side", "top_bottom", "none", "unknown"] }
+          },
+          "additionalProperties": true
+        },
+        "presentation_capabilities": {
+          "type": "object",
+          "properties": {
+            "video": { "type": "array", "items": { "type": "string" } },
+            "audio": { "type": "array", "items": { "type": "string" } },
+            "three_d": { "type": "boolean" },
+            "high_frame_rate": { "type": "boolean" },
+            "immersive_audio": { "type": "boolean" }
+          },
+          "additionalProperties": true
+        },
+        "seat_classes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["class_id", "display_name"],
+            "properties": {
+              "class_id": { "$ref": "#/$defs/id" },
+              "display_name": { "type": "string" },
+              "features": { "type": "array", "items": { "type": "string" } }
+            },
+            "additionalProperties": true
+          }
+        },
+        "seatmap": {
+          "type": "object",
+          "required": ["layout_url"],
+          "properties": {
+            "layout_url": { "type": "string", "format": "uri" },
+            "image_url": { "type": "string", "format": "uri" },
+            "version": { "type": "string" },
+            "updated_at": { "$ref": "#/$defs/dateTime" }
+          },
+          "additionalProperties": true
+        },
+        "seatmap_url": {
+          "description": "Legacy seat map URL. Prefer seatmap.layout_url.",
+          "type": "string",
+          "format": "uri"
+        },
+        "updated_at": { "$ref": "#/$defs/dateTime" }
+      },
+      "additionalProperties": true
+    },
+    "presentation": {
+      "type": "object",
+      "properties": {
+        "content_version_id": { "type": "string" },
+        "cpl_id": { "type": "string" },
+        "dcnc_title": { "type": "string" },
+        "release_territory": { "$ref": "#/$defs/country" },
+        "video_format": { "type": "string" },
+        "marketing_name": { "type": "string" },
+        "aspect_ratio": { "type": "string" },
+        "resolution": { "type": "string" },
+        "frame_rate": { "type": "number", "exclusiveMinimum": 0 },
+        "three_d": { "type": "boolean" },
+        "audio_format": { "type": "string" },
+        "sound_configuration": { "type": "string" },
+        "immersive_audio": { "type": "boolean" },
+        "language": { "$ref": "#/$defs/language" },
+        "subtitle_languages": { "type": "array", "items": { "$ref": "#/$defs/language" } },
+        "caption_languages": { "type": "array", "items": { "$ref": "#/$defs/language" } }
+      },
+      "additionalProperties": true
+    },
+    "offer": {
+      "type": "object",
+      "required": ["offer_id", "price", "currency", "booking_url"],
+      "properties": {
+        "offer_id": { "$ref": "#/$defs/id" },
+        "name": { "type": "string" },
+        "category": { "type": "string" },
+        "class_id": { "$ref": "#/$defs/id" },
+        "price": { "type": "number", "minimum": 0 },
+        "currency": { "$ref": "#/$defs/currency" },
+        "fees_included": { "type": "boolean" },
+        "availability": { "enum": ["in_stock", "sold_out", "preorder", "limited", "unknown"] },
+        "valid_from": { "$ref": "#/$defs/dateTime" },
+        "valid_until": { "$ref": "#/$defs/dateTime" },
+        "minimum_quantity": { "type": "integer", "minimum": 1 },
+        "maximum_quantity": { "type": "integer", "minimum": 1 },
+        "booking_url": { "type": "string", "format": "uri" },
+        "eligibility": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "availabilitySnapshot": {
+      "type": "object",
+      "required": ["status", "updated_at"],
+      "properties": {
+        "status": { "enum": ["on_sale", "off_sale", "limited", "sold_out", "cancelled", "unknown"] },
+        "updated_at": { "$ref": "#/$defs/dateTime" },
+        "seats_total": { "type": "integer", "minimum": 0 },
+        "seats_available": { "type": "integer", "minimum": 0 },
+        "availability_url": { "type": "string", "format": "uri" }
+      },
+      "additionalProperties": true
+    },
+    "session": {
+      "type": "object",
+      "required": ["session_id", "film_id", "start_time", "status", "canonical_url"],
+      "properties": {
+        "session_id": { "$ref": "#/$defs/id" },
+        "cinema_id": {
+          "description": "Required by the specification when the document contains multiple cinemas.",
+          "$ref": "#/$defs/id"
+        },
+        "film_id": { "$ref": "#/$defs/id" },
+        "auditorium_id": { "$ref": "#/$defs/id" },
+        "canonical_url": { "type": "string", "format": "uri" },
+        "status": { "enum": ["scheduled", "cancelled", "postponed", "rescheduled"] },
+        "previous_start_time": {
+          "oneOf": [
+            { "$ref": "#/$defs/dateTime" },
+            { "type": "array", "items": { "$ref": "#/$defs/dateTime" } }
+          ]
+        },
+        "start_time": { "$ref": "#/$defs/dateTime" },
+        "advertised_start_time": { "$ref": "#/$defs/dateTime" },
+        "preshow_start_time": { "$ref": "#/$defs/dateTime" },
+        "feature_start_time": { "$ref": "#/$defs/dateTime" },
+        "credits_start_time": { "$ref": "#/$defs/dateTime" },
+        "end_time": { "$ref": "#/$defs/dateTime" },
+        "door_time": { "$ref": "#/$defs/dateTime" },
+        "session_type": { "enum": ["public", "private", "festival", "preview", "premiere", "education", "other"] },
+        "seating_mode": { "enum": ["reserved", "general_admission", "mixed"] },
+        "sales_channels": {
+          "type": "array",
+          "items": { "enum": ["box_office", "web", "app", "kiosk", "partner", "other"] },
+          "uniqueItems": true
+        },
+        "special_events": { "type": "array", "items": { "type": "string" } },
+        "presentation": { "$ref": "#/$defs/presentation" },
+        "accessibility": { "$ref": "#/$defs/accessibility" },
+        "offers": { "type": "array", "items": { "$ref": "#/$defs/offer" } },
+        "availability": { "$ref": "#/$defs/availabilitySnapshot" },
+        "booking_url": { "type": "string", "format": "uri" },
+        "updated_at": { "$ref": "#/$defs/dateTime" },
+        "provenance": { "$ref": "#/$defs/provenance" },
+        "attributes": {
+          "description": "Legacy 1.0 presentation/accessibility object.",
+          "type": "object"
+        },
+        "pricing": {
+          "description": "Legacy 1.0 pricing array. Prefer offers.",
+          "type": "array"
+        },
+        "availability_by_class": {
+          "description": "Legacy 1.0 availability array. Prefer availability and its live endpoint.",
+          "type": "array"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "status": { "const": "rescheduled" } },
+            "required": ["status"]
+          },
+          "then": {
+            "properties": {
+              "previous_start_time": {
+                "oneOf": [
+                  { "$ref": "#/$defs/dateTime" },
+                  { "type": "array", "items": { "$ref": "#/$defs/dateTime" } }
+                ]
+              }
+            },
+            "required": ["previous_start_time"]
+          }
+        }
+      ],
+      "additionalProperties": true
+    }
+  }
+}

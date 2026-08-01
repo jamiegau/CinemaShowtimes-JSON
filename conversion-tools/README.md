@@ -2,11 +2,20 @@
 
 This directory contains examples of vendor specific data into CinemaShowtime-JSON format.  The vendor is represented by the directory names
 
-Typically all you need to do it place the php file onto a web server, after editing the source of the vendor data into the file.  Then simply hitting the php file from any browser will result in the converted JSON output.
+Typically you place the PHP file on a web server and configure the vendor data
+source. Requesting the PHP endpoint then returns converted JSON.
+
+## Credentials
+
+Never commit POS credentials or API keys to this repository or place them in a
+public document root. The Veezi example reads its access token from the
+`VEEZI_API_KEY` server environment variable. Configure that variable in the PHP
+runtime or secret manager and restrict public access to the converter as
+appropriate for the feed's licence.
 
 Conversion tools are provided to transform vendor-specific feeds (such as Vista, Radiant, Veezi) into the CinemaShowtimes-JSON format. These tools are located in the vendors name directory and are implemented as simple, single-file PHP scripts. You can deploy these scripts on any standard web server. Each script can be configured to point to a vendor’s data source and will return the equivalent CinemaShowtimes-JSON output by proxying the vendor endpoint, converting the data, and delivering it in the standardized format.
 
-## supported vendors
+## Supported vendors
 
 If you would like a conversion tool implemented for your API, please contact me. If others develop conversion tools for their own cinema software, I would greatly appreciate it if they submit them here so others can benefit.
 
