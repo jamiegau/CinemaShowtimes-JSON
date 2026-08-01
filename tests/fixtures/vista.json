@@ -1,0 +1,170 @@
+{
+  "site": {
+    "site": {
+      "id": "SITE-1",
+      "name": {
+        "text": "Example Vista Cinema",
+        "translations": []
+      },
+      "location": {
+        "latitude": -37.833,
+        "longitude": 144.933
+      },
+      "contactDetails": {
+        "phoneNumbers": [
+          {
+            "type": "Business",
+            "number": "+61 3 5555 1234"
+          }
+        ],
+        "email": "cinema@example.test",
+        "address": {
+          "line1": "123 Example Street",
+          "line2": "Port Melbourne",
+          "city": "Melbourne"
+        }
+      },
+      "ianaTimeZoneName": "Australia/Melbourne"
+    }
+  },
+  "films": {
+    "films": [
+      {
+        "id": "FILM-1",
+        "title": {
+          "text": "Example Vista Film",
+          "translations": [
+            {
+              "languageTag": "fr",
+              "text": "Film Vista Exemple"
+            }
+          ]
+        },
+        "synopsis": {
+          "text": "A film used to validate the Vista converter.",
+          "translations": []
+        },
+        "shortSynopsis": {
+          "text": "Vista converter fixture.",
+          "translations": []
+        },
+        "censorRatingId": "M",
+        "censorRatingNote": {
+          "text": "Moderate themes",
+          "translations": []
+        },
+        "releaseDate": "2026-07-30T00:00:00+10:00",
+        "runtimeInMinutes": 110,
+        "trailers": [
+          {
+            "provider": "External",
+            "uri": "https://video.example.test/vista-trailer.mp4"
+          }
+        ],
+        "castAndCrew": [],
+        "actors": [
+          {
+            "castAndCrewMemberId": "P1"
+          }
+        ],
+        "directors": [
+          {
+            "castAndCrewMemberId": "P2"
+          }
+        ],
+        "producers": [],
+        "genreIds": ["DRAMA"],
+        "externalIds": {
+          "moviexchangeReleaseId": "00000000-0000-0000-0000-000000000001",
+          "corporateId": "CORP-1"
+        },
+        "hoCode": "HO-1",
+        "distributorName": "Example Distribution"
+      }
+    ],
+    "relatedData": {
+      "castAndCrew": [
+        {
+          "id": "P1",
+          "name": {
+            "givenName": "Alex",
+            "familyName": "Example"
+          }
+        },
+        {
+          "id": "P2",
+          "name": {
+            "givenName": "Jane",
+            "familyName": "Example"
+          }
+        }
+      ],
+      "genres": [
+        {
+          "id": "DRAMA",
+          "name": {
+            "text": "Drama",
+            "translations": []
+          }
+        }
+      ],
+      "censorRatings": [
+        {
+          "id": "M",
+          "name": {
+            "text": "M",
+            "translations": []
+          }
+        }
+      ]
+    }
+  },
+  "showtimes": [
+    {
+      "showtimes": [
+        {
+          "id": "SHOW-1",
+          "schedule": {
+            "businessDate": "2026-08-18T00:00:00+10:00",
+            "startsAt": "2026-08-18T19:30:00+10:00",
+            "endsAt": "2026-08-18T21:35:00+10:00",
+            "filmStartsAt": "2026-08-18T19:45:00+10:00",
+            "filmEndsAt": "2026-08-18T21:35:00+10:00"
+          },
+          "isSoldOut": false,
+          "seatLayoutId": "LAYOUT-1",
+          "filmId": "FILM-1",
+          "siteId": "SITE-1",
+          "screenId": "SCREEN-1",
+          "areaCategories": [],
+          "attributeIds": ["ATTR-2D"],
+          "isAllocatedSeating": true,
+          "requires3dGlasses": false,
+          "restrictions": []
+        }
+      ],
+      "relatedData": {
+        "screens": [
+          {
+            "id": "SCREEN-1",
+            "name": {
+              "text": "Cinema 1",
+              "translations": []
+            },
+            "number": "1",
+            "seatCount": 100
+          }
+        ],
+        "attributes": [
+          {
+            "id": "ATTR-2D",
+            "name": {
+              "text": "Laser",
+              "translations": []
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

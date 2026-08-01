@@ -1,0 +1,84 @@
+{
+  "films": [
+    {
+      "Id": "ST00000032",
+      "Title": "Example Film",
+      "ShortName": "Example",
+      "Synopsis": "A film used to validate the Veezi converter.",
+      "Genre": "Drama, Adventure",
+      "SignageText": "Example Film",
+      "Distributor": "Example Distribution",
+      "OpeningDate": "2026-07-30T00:00:00",
+      "Rating": "M",
+      "Status": "Active",
+      "Content": "Moderate themes",
+      "Duration": 118,
+      "NationalCode": "EXAMPLE-32",
+      "Format": "2D Digital",
+      "IsRestricted": false,
+      "People": [
+        {
+          "Id": "P1",
+          "FirstName": "Jane",
+          "LastName": "Example",
+          "Role": "Director"
+        },
+        {
+          "Id": "P2",
+          "FirstName": "Alex",
+          "LastName": "Example",
+          "Role": "Actor"
+        }
+      ],
+      "AudioLanguage": "English",
+      "FilmPosterUrl": "https://images.example.test/example-poster.jpg",
+      "FilmPosterThumbnailUrl": "https://images.example.test/example-thumb.jpg",
+      "BackdropImageUrl": "https://images.example.test/example-backdrop.jpg",
+      "FilmTrailerUrl": "https://video.example.test/example-trailer.mp4"
+    }
+  ],
+  "screens": [
+    {
+      "Id": 1,
+      "Name": "Cinema 1",
+      "ScreenNumber": "1",
+      "HasCustomLayout": true,
+      "TotalSeats": 120,
+      "HouseSeats": 2,
+      "WheelChairSeats": 2
+    }
+  ],
+  "sessions": [
+    {
+      "Id": 702,
+      "FilmId": "ST00000032",
+      "Title": "Example Film",
+      "ScreenId": 1,
+      "Seating": "Allocated",
+      "AreComplimentariesAllowed": true,
+      "ShowType": "Public",
+      "SalesVia": ["WWW", "POS"],
+      "Status": "Open",
+      "PreShowStartTime": "2026-08-18T19:30:00",
+      "SalesCutOffTime": "2026-08-18T19:20:00",
+      "FeatureStartTime": "2026-08-18T19:45:00",
+      "FeatureEndTime": "2026-08-18T21:43:00",
+      "CleanupEndTime": "2026-08-18T21:58:00",
+      "TicketsSoldOut": false,
+      "FewTicketsLeft": false,
+      "SeatsAvailable": 88,
+      "SeatsHeld": 4,
+      "SeatsHouse": 2,
+      "SeatsSold": 26,
+      "FilmFormat": "2D Digital",
+      "PriceCardName": "General Admission",
+      "AudioLanguage": "English"
+    }
+  ],
+  "websessions": [
+    {
+      "Id": 702,
+      "URL": "https://tickets.example.test/session/702"
+    }
+  ]
+}

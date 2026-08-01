@@ -24,5 +24,19 @@ jobs:
         run: python -m pip install -r requirements-dev.txt
       - name: Validate JSON examples
         run: python tools/validate_examples.py
+      - name: Check PHP syntax
+        run: find conversion-tools wordpress-plugin tests -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: Generate converter fixtures
+        run: |
+          mkdir -p "$RUNNER_TEMP/converter-fixtures"
+          php tests/php/generate-converter-fixtures.php "$RUNNER_TEMP/converter-fixtures"
+          php tests/php/wordpress-roundtrip.php "$RUNNER_TEMP/converter-fixtures/wordpress-1.1.json"
+      - name: Validate converted 1.1 feeds
+        run: |
+          python tools/validate_examples.py \
+            --feed "$RUNNER_TEMP/converter-fixtures/veezi-1.1.json" \
+            --feed "$RUNNER_TEMP/converter-fixtures/venuemaster-1.1.json" \
+            --feed "$RUNNER_TEMP/converter-fixtures/vista-1.1.json" \
+            --feed "$RUNNER_TEMP/converter-fixtures/wordpress-1.1.json"
       - name: Validate OpenAPI profile
         run: npx --yes @redocly/cli@2.43.2 lint openapi/cinemashowtimes-api-1.1.yaml

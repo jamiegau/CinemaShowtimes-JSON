@@ -59,7 +59,12 @@ JSON-LD.
   unified source.
 
 ## Coming Soon support
-The CinemaShowtimes-JSON format also supports “coming soon” films using the same schema as sessiontime.json. A comingsoon.json file may be published alongside regular showtimes, containing only the cinema and films objects, while omitting auditoria and sessions. Each film entry can include additional fields such as status: "coming_soon", release_date, pre_sales_start, and an optional presales block with booking links and earliest available showtimes. This ensures distributors, aggregators, and apps can provide a seamless experience by displaying both currently playing titles and upcoming films within a single standardized format.
+
+The same 1.1 schema supports coming-soon feeds containing feed metadata,
+`cinema` and `films` while omitting `auditoria` and `sessions`. Use
+`status: "coming_soon"`, regional `releases`, and media with explicit usage
+rights. Advance-sale sessions and offers should be published normally once they
+exist rather than duplicated in a proprietary presales object.
 
 For example, alongside `https://cinemaname.com/showtimes.json`, a publisher can
 offer `https://cinemaname.com/comingsoon.json`.
@@ -67,9 +72,9 @@ offer `https://cinemaname.com/comingsoon.json`.
 ## What you will find in this repository
 
 1. A normative specification, JSON Schemas and validated examples.
-2. Tools to convert vendor-specific feeds (e.g. Vista, Radiant, Veezi) into CinemaShowtimes-JSON.
-Located in the conversion-tools directory, these will be implemented as simple, single-file PHP scripts that can be deployed on a standard web server. Each script can be pointed at a vendor’s data source and will return the equivalent CinemaShowtimes-JSON output by proxying the vendor endpoint, converting the data, and delivering it in the standardized format.
-3. An example WordPress plugin to read and render session times for a cinema website.
+2. Tested PHP converters for Veezi, VenueMaster and Vista Digital Platform.
+3. A WordPress plugin that losslessly imports, edits and exports 1.1 feeds.
+4. Fixture-based schema, semantic, converter and WordPress round-trip tests.
 
 
 ## Basic example
@@ -84,6 +89,7 @@ A minimal 1.1 example is below.
 {
   "spec": "cinemashowtimes-json/1.1",
   "feed_id": "example-cinema",
+  "mode": "full",
   "generated_at": "2026-08-01T12:00:00Z",
   "expires_at": "2026-08-01T12:15:00Z",
   "publisher": {
@@ -126,11 +132,31 @@ A minimal 1.1 example is below.
 }
 ```
 
-## Conversion Example
-Under `conversion-tools` are examples that convert supported vendor showtime
-endpoints into CinemaShowtimes-JSON. They currently emit 1.0 and should only
-declare 1.1 after they can provide its required identity and freshness
-semantics.
+## Conversion tools
+
+The [conversion guide](conversion-tools/README.md) covers:
+
+- Veezi `v4/film`, `v1/session`, `v1/screen` and `v1/websession`;
+- VenueMaster VenueSchedule 7.5, including ticket price groups;
+- Vista Digital Platform OCAPI sites, films, screens and business-date
+  showtimes.
+
+All three emit 1.1, use environment-based credentials and have sanitized
+fixtures that are generated and validated in CI. Additional POS converters are
+only marked supported when an official contract and test fixture are available.
+
+## WordPress
+
+The [WordPress plugin](wordpress-plugin/README.md) now strictly imports 1.1,
+preserves complete entities in `raw_payload`, indexes common editing fields,
+applies delta tombstones and exports a validated full feed at:
+
+```text
+/wp-json/cine/v1/showtimes
+```
+
+Public discovery can be enabled or disabled. Protected imports and private
+reads use the `X-CINE-API` header rather than query-string credentials.
 
 ## Validation
 
@@ -139,6 +165,15 @@ Install `jsonschema`, then validate the shipped examples:
 ```sh
 python -m pip install -r requirements-dev.txt
 python tools/validate_examples.py
+
+output_dir="$(mktemp -d)"
+php tests/php/generate-converter-fixtures.php "$output_dir"
+php tests/php/wordpress-roundtrip.php "$output_dir/wordpress-1.1.json"
+python tools/validate_examples.py \
+  --feed "$output_dir/veezi-1.1.json" \
+  --feed "$output_dir/venuemaster-1.1.json" \
+  --feed "$output_dir/vista-1.1.json" \
+  --feed "$output_dir/wordpress-1.1.json"
 ```
 
 ## Proponents

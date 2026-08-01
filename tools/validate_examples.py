@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 import sys
 from datetime import datetime
+import argparse
 
 try:
     from jsonschema import Draft202012Validator, FormatChecker
@@ -100,8 +101,20 @@ def semantic_seatmap_errors(seatmap: dict) -> list[str]:
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--feed",
+        action="append",
+        default=[],
+        type=Path,
+        help="Additional CinemaShowtimes-JSON 1.1 document to validate.",
+    )
+    args = parser.parse_args()
+    cases = list(CASES)
+    feed_schema = ROOT / "schema" / "cinemashowtimes-json-1.1.schema.json"
+    cases.extend((feed_schema, path) for path in args.feed)
     failed = False
-    for schema_path, example_path in CASES:
+    for schema_path, example_path in cases:
         schema = json.loads(schema_path.read_text(encoding="utf-8"))
         instance = json.loads(example_path.read_text(encoding="utf-8"))
         Draft202012Validator.check_schema(schema)

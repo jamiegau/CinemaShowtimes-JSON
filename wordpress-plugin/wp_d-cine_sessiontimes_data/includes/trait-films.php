@@ -46,9 +46,11 @@ trait WP_DCine_Films_Trait
         $film_id_val = esc_attr($suggested_id);
       }
       $title_val = $edit_row ? esc_attr($edit_row->title) : '';
+      $canonical_val = $edit_row ? esc_attr($edit_row->canonical_url) : '';
       $runtime_val = $edit_row ? esc_attr($edit_row->runtime_minutes) : '';
       $rating_val = $edit_row ? esc_attr($edit_row->rating) : '';
       $synopsis_val = $edit_row ? esc_textarea($edit_row->synopsis) : '';
+      $status_val = $edit_row && $edit_row->status ? $edit_row->status : 'announced';
       $read_only_checked = $edit_row && $edit_row->read_only ? 'checked' : '';
 
       echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '">';
@@ -57,9 +59,15 @@ trait WP_DCine_Films_Trait
       echo '<table class="form-table">';
       echo '<tr><th><label>Film ID</label></th><td><input name="film_id" type="text" value="' . $film_id_val . '" ' . ($edit_row ? 'readonly' : '') . ' required class="regular-text" /></td></tr>';
       echo '<tr><th><label>Title</label></th><td><input name="title" type="text" value="' . $title_val . '" required class="regular-text" /></td></tr>';
+      echo '<tr><th><label>Canonical URL</label></th><td><input name="canonical_url" type="url" value="' . $canonical_val . '" class="regular-text" /></td></tr>';
       echo '<tr><th><label>Runtime (min)</label></th><td><input name="runtime_minutes" type="number" min="0" value="' . $runtime_val . '" class="small-text" /></td></tr>';
       echo '<tr><th><label>Rating</label></th><td><input name="rating" type="text" value="' . $rating_val . '" class="regular-text" /></td></tr>';
-      echo '<tr><th><label>Synopsis</label></th><td><textarea name="synopsis" class="large-text">' . $synopsis_val . '</textarea></td></tr>';
+      echo '<tr><th><label>Status</label></th><td><select name="status">';
+      foreach (array('announced', 'coming_soon', 'now_showing', 'ended', 'cancelled') as $status_option) {
+        printf('<option value="%s" %s>%s</option>', esc_attr($status_option), selected($status_val, $status_option, false), esc_html(ucwords(str_replace('_', ' ', $status_option))));
+      }
+      echo '</select></td></tr>';
+      echo '<tr><th><label>Description</label></th><td><textarea name="synopsis" class="large-text">' . $synopsis_val . '</textarea></td></tr>';
       echo '<tr><th><label>Read Only</label></th><td><label><input type="checkbox" name="read_only" value="1" ' . $read_only_checked . ' /> Mark as read-only (import will not overwrite)</label></td></tr>';
       echo '</table>';
       submit_button($edit_row ? 'Save Film' : 'Create Film');
@@ -92,9 +100,13 @@ trait WP_DCine_Films_Trait
 
     $film_id = isset($_POST['film_id']) ? sanitize_text_field($_POST['film_id']) : '';
     $title = isset($_POST['title']) ? sanitize_text_field($_POST['title']) : '';
+    $canonical_url = isset($_POST['canonical_url']) ? esc_url_raw($_POST['canonical_url']) : null;
     $runtime = isset($_POST['runtime_minutes']) ? intval($_POST['runtime_minutes']) : null;
     $rating = isset($_POST['rating']) ? sanitize_text_field($_POST['rating']) : null;
     $synopsis = isset($_POST['synopsis']) ? wp_kses_post($_POST['synopsis']) : null;
+    $status = isset($_POST['status']) && in_array($_POST['status'], array('announced', 'coming_soon', 'now_showing', 'ended', 'cancelled'), true)
+      ? sanitize_text_field($_POST['status'])
+      : 'announced';
     $read_only = isset($_POST['read_only']) ? 1 : 0;
 
     if (!$film_id) {
@@ -106,9 +118,11 @@ trait WP_DCine_Films_Trait
     $payload = array(
       'film_id' => $film_id,
       'title' => $title,
+      'canonical_url' => $canonical_url,
       'runtime_minutes' => $runtime,
       'rating' => $rating,
       'synopsis' => $synopsis,
+      'status' => $status,
       'read_only' => $read_only,
     );
     if ($exists) {

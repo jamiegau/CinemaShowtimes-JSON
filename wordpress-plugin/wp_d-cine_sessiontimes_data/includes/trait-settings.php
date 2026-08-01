@@ -12,109 +12,124 @@ trait WP_DCine_Settings_Trait
 
   public function sanitize_settings($input)
   {
-    $out = array();
-    // Preserve existing cinema config if present
-    $cinema_in = isset($input['cinema']) && is_array($input['cinema']) ? $input['cinema'] : array();
-    $out['cinema'] = array(
-      'cinema_id' => isset($cinema_in['cinema_id']) ? sanitize_text_field($cinema_in['cinema_id']) : '',
-      'name' => isset($cinema_in['name']) ? sanitize_text_field($cinema_in['name']) : '',
-      'timezone' => isset($cinema_in['timezone']) ? sanitize_text_field($cinema_in['timezone']) : '',
-      'lat' => isset($cinema_in['lat']) ? floatval($cinema_in['lat']) : null,
-      'lon' => isset($cinema_in['lon']) ? floatval($cinema_in['lon']) : null,
-      'address' => isset($cinema_in['address']) ? sanitize_text_field($cinema_in['address']) : '',
-      'phone' => isset($cinema_in['phone']) ? sanitize_text_field($cinema_in['phone']) : '',
-      'website' => isset($cinema_in['website']) ? esc_url_raw($cinema_in['website']) : '',
-      'google_place_id' => isset($cinema_in['google_place_id']) ? sanitize_text_field($cinema_in['google_place_id']) : '',
-      'google_business_id' => isset($cinema_in['google_business_id']) ? sanitize_text_field($cinema_in['google_business_id']) : '',
-    );
+    $existing = get_option($this->option_name, array());
+    $out = is_array($existing) ? $existing : array();
+    $input = is_array($input) ? $input : array();
 
-    $out['endpoint_url'] = isset($input['endpoint_url']) ? esc_url_raw($input['endpoint_url']) : '';
-    $out['api_key'] = isset($input['api_key']) ? sanitize_text_field($input['api_key']) : '';
-  // Local endpoint (a URL on this WP server that can serve the JSON payload)
-  $out['local_endpoint'] = isset($input['local_endpoint']) ? esc_url_raw($input['local_endpoint']) : '';
-  $out['local_api_key'] = isset($input['local_api_key']) ? sanitize_text_field($input['local_api_key']) : '';
-    $out['auto_mode'] = isset($input['auto_mode']) && $input['auto_mode'] ? '1' : '0';
-    $mins = isset($input['interval_minutes']) ? intval($input['interval_minutes']) : 15;
-    if ($mins < 1)
-      $mins = 1;
-    if ($mins > 60)
-      $mins = 60;
-    $out['interval_minutes'] = $mins;
-
-    // re-schedule if needed
-    wp_clear_scheduled_hook('wp_d_cine_scheduled_fetch');
-    if ($out['auto_mode'] === '1') {
-      add_filter('cron_schedules', function ($schedules) use ($mins) {
-        $key = 'wp_d_cine_interval_' . $mins;
-        if (!isset($schedules[$key])) {
-          $schedules[$key] = array('interval' => $mins * 60, 'display' => "Every {$mins} minutes");
+    if (isset($input['cinema']) && is_array($input['cinema'])) {
+      $cinemaExisting = isset($out['cinema']) && is_array($out['cinema']) ? $out['cinema'] : array();
+      $cinemaInput = $input['cinema'];
+      $textFields = array(
+        'cinema_id', 'name', 'timezone', 'phone', 'email', 'address',
+        'street_address', 'locality', 'region', 'postal_code', 'country',
+        'google_place_id', 'google_place_id_verified_at',
+      );
+      foreach ($textFields as $field) {
+        if (array_key_exists($field, $cinemaInput)) {
+          $cinemaExisting[$field] = sanitize_text_field($cinemaInput[$field]);
         }
-        return $schedules;
-      });
-      if (!wp_next_scheduled('wp_d_cine_scheduled_fetch')) {
-        wp_schedule_event(time(), 'wp_d_cine_interval_' . $mins, 'wp_d_cine_scheduled_fetch');
       }
+      foreach (array('website', 'canonical_url') as $field) {
+        if (array_key_exists($field, $cinemaInput)) {
+          $cinemaExisting[$field] = esc_url_raw($cinemaInput[$field]);
+        }
+      }
+      foreach (array('lat', 'lon') as $field) {
+        if (array_key_exists($field, $cinemaInput)) {
+          $cinemaExisting[$field] = $cinemaInput[$field] === '' ? null : floatval($cinemaInput[$field]);
+        }
+      }
+      if (!empty($cinemaExisting['country'])) {
+        $cinemaExisting['country'] = strtoupper($cinemaExisting['country']);
+      }
+      $out['cinema'] = $cinemaExisting;
     }
 
+    if (array_key_exists('endpoint_url', $input)) {
+      $out['endpoint_url'] = esc_url_raw($input['endpoint_url']);
+    }
+    if (array_key_exists('api_key', $input)) {
+      $out['api_key'] = sanitize_text_field($input['api_key']);
+    }
+    if (array_key_exists('local_api_key', $input)) {
+      $out['local_api_key'] = sanitize_text_field($input['local_api_key']);
+    }
+    if (array_key_exists('interval_minutes', $input)) {
+      $out['interval_minutes'] = max(1, min(60, intval($input['interval_minutes'])));
+    }
+    if (array_key_exists('settings_form', $input)) {
+      $out['auto_mode'] = !empty($input['auto_mode']) ? '1' : '0';
+      $out['public_feed'] = !empty($input['public_feed']) ? '1' : '0';
+    }
+
+    wp_clear_scheduled_hook('wp_d_cine_scheduled_fetch');
+    if (!empty($out['auto_mode'])) {
+      $minutes = isset($out['interval_minutes']) ? intval($out['interval_minutes']) : 15;
+      wp_schedule_event(time(), 'wp_d_cine_interval_' . $minutes, 'wp_d_cine_scheduled_fetch');
+    }
     return $out;
   }
 
   public function settings_page()
   {
-    $opts = get_option($this->option_name, array(
+    $defaults = array(
       'endpoint_url' => '',
       'api_key' => '',
-  // sensible default for local endpoint on this WP site (relative path)
-  'local_endpoint' => '/wp-json/cine/v1/sessiontimes',
       'local_api_key' => '',
+      'public_feed' => '1',
       'auto_mode' => '0',
-      'interval_minutes' => 15
-    ));
+      'interval_minutes' => 15,
+    );
+    $opts = wp_parse_args(get_option($this->option_name, array()), $defaults);
     ?>
     <div class="wrap">
       <h1>d-Cine Sessiontimes Settings</h1>
+      <p>This plugin imports and exports <code>cinemashowtimes-json/1.1</code>. Imported entities are preserved losslessly while selected fields remain editable.</p>
       <form method="post" action="options.php">
-        <?php settings_fields($this->option_name);
-        do_settings_sections($this->option_name); ?>
-        <h2>Remote</h2>
+        <?php settings_fields($this->option_name); ?>
+        <input type="hidden" name="<?php echo esc_attr($this->option_name); ?>[settings_form]" value="1" />
+        <h2>Remote source</h2>
         <table class="form-table">
           <tr>
-            <th scope="row"><label for="endpoint_url">Endpoint URL</label></th>
-            <td><input name="<?php echo $this->option_name; ?>[endpoint_url]" type="url" id="endpoint_url"
+            <th scope="row"><label for="endpoint_url">1.1 feed URL</label></th>
+            <td><input name="<?php echo esc_attr($this->option_name); ?>[endpoint_url]" type="url" id="endpoint_url"
                 value="<?php echo esc_attr($opts['endpoint_url']); ?>" class="regular-text" /></td>
           </tr>
           <tr>
-            <th scope="row"><label for="api_key">Auth Key</label></th>
-            <td><input name="<?php echo $this->option_name; ?>[api_key]" type="text" id="api_key"
-                value="<?php echo esc_attr($opts['api_key']); ?>" class="regular-text" /></td>
-          </tr>
-          <tr>
-            <th scope="row">Automatic fetch</th>
-            <td>
-              <label><input type="checkbox" name="<?php echo $this->option_name; ?>[auto_mode]" value="1" <?php checked($opts['auto_mode'], '1'); ?> /> Enable automatic fetch (WP-Cron)</label>
-              <p class="description">When enabled the plugin will fetch the configured endpoint periodically.</p>
+            <th scope="row"><label for="api_key">Import/source key</label></th>
+            <td><input name="<?php echo esc_attr($this->option_name); ?>[api_key]" type="password" id="api_key"
+                value="<?php echo esc_attr($opts['api_key']); ?>" autocomplete="new-password" class="regular-text" />
+              <p class="description">Sent only in the <code>X-CINE-API</code> header.</p>
             </td>
           </tr>
           <tr>
+            <th scope="row">Automatic fetch</th>
+            <td><label><input type="checkbox" name="<?php echo esc_attr($this->option_name); ?>[auto_mode]" value="1" <?php checked($opts['auto_mode'], '1'); ?> /> Enable WP-Cron fetching</label></td>
+          </tr>
+          <tr>
             <th scope="row"><label for="interval_minutes">Interval (minutes)</label></th>
-            <td><input name="<?php echo $this->option_name; ?>[interval_minutes]" type="number" id="interval_minutes"
+            <td><input name="<?php echo esc_attr($this->option_name); ?>[interval_minutes]" type="number" id="interval_minutes"
                 value="<?php echo esc_attr($opts['interval_minutes']); ?>" min="1" max="60" /></td>
           </tr>
         </table>
 
-        <h2>Local</h2>
+        <h2>Local 1.1 feed</h2>
         <table class="form-table">
           <tr>
-            <th scope="row"><label for="local_endpoint">Local Endpoint (this WP site)</label></th>
-      <td><input name="<?php echo $this->option_name; ?>[local_endpoint]" type="url" id="local_endpoint"
-        value="<?php echo esc_attr($opts['local_endpoint']); ?>" placeholder="/wp-json/cine/v1/sessiontimes" class="regular-text" />
-              <p class="description">A URL on this site (or another internal URL) that will serve the CinemaShowtimes JSON.</p>
+            <th scope="row">Canonical endpoint</th>
+            <td><code><?php echo esc_html(rest_url('cine/v1/showtimes')); ?></code></td>
+          </tr>
+          <tr>
+            <th scope="row">Public discovery</th>
+            <td><label><input type="checkbox" name="<?php echo esc_attr($this->option_name); ?>[public_feed]" value="1" <?php checked($opts['public_feed'], '1'); ?> /> Allow unauthenticated reads</label>
+              <p class="description">Recommended for public Search, social and agent discovery feeds.</p>
             </td>
           </tr>
           <tr>
-            <th scope="row"><label for="local_api_key">API Key</label></th>
-            <td><input name="<?php echo $this->option_name; ?>[local_api_key]" type="text" id="local_api_key"
-                value="<?php echo esc_attr($opts['local_api_key']); ?>" class="regular-text" />
+            <th scope="row"><label for="local_api_key">Private feed key</label></th>
+            <td><input name="<?php echo esc_attr($this->option_name); ?>[local_api_key]" type="password" id="local_api_key"
+                value="<?php echo esc_attr($opts['local_api_key']); ?>" autocomplete="new-password" class="regular-text" />
+              <p class="description">Required in <code>X-CINE-API</code> when public discovery is disabled.</p>
             </td>
           </tr>
         </table>
@@ -122,12 +137,12 @@ trait WP_DCine_Settings_Trait
       </form>
 
       <h2>Manual fetch</h2>
-      <form method="post" action="<?php echo admin_url('admin-post.php'); ?>">
+      <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
         <input type="hidden" name="action" value="wp_d_cine_manual_fetch" />
+        <?php wp_nonce_field('wp_d_cine_manual_fetch'); ?>
         <?php submit_button('Run manual fetch now'); ?>
       </form>
     </div>
     <?php
   }
-
 }

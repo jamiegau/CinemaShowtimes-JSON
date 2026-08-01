@@ -16,18 +16,31 @@ ambiguous, seat maps were only opaque URLs, and freshness/provenance/canonical
 identity were incomplete. Version 1.1 addresses those issues in new validated
 examples while leaving the root 1.0 fixtures intact for migration testing.
 
-The Veezi and VenueMaster converters still emit 1.0. Relabelling their existing
-output as 1.1 would be misleading because they do not yet provide all 1.1
-identity, rights and freshness semantics. A credential literal was removed from
-the Veezi example and replaced with `VEEZI_API_KEY` environment configuration.
+The original Veezi and VenueMaster converters emitted incomplete 1.0
+projections. They now use separate, fixture-tested mapping functions and emit
+1.1 identity, canonical time, provenance, auditorium and availability data.
+Veezi also uses its Screen and WebSession APIs; VenueMaster maps ratings,
+cancelled sessions and valid ticket price groups. A Vista Digital Platform
+converter was added because Vista publishes a sufficiently precise OCAPI
+contract. Products without public or supplied contracts remain unimplemented.
 
-The WordPress plugin is a useful prototype, but its import/export path currently
-models only a subset of films and sessions, does not round-trip the complete
-cinema/auditorium/feed metadata, and can discard unknown extension objects.
-Its exporter therefore remains on 1.0. A future 1.1 plugin migration should
-preserve the original validated payload alongside indexed display fields,
-round-trip canonical IDs and URLs, and treat the linked availability service as
-more authoritative than stored snapshots.
+The WordPress prototype previously modelled only a subset of films and sessions,
+did not round-trip cinema/auditorium/feed metadata, exposed database columns on
+export and discarded unknown objects. Version 0.2.0 preserves each raw 1.1
+entity alongside indexed fields, overlays administrator edits on export, applies
+delta tombstones, and uses proper REST permission callbacks. A fixture test
+imports and re-exports the complete example before schema and semantic
+validation.
+
+Converter implementation was checked against the official
+[Veezi API reference](https://api.us.veezi.com/help/), including its separate
+Film, Session, Screen and WebSession resources, and Vista's
+[Digital Platform OpenAPI](https://developer.vista.co/openapi/digital-platform/openapi)
+and [authentication guidance](https://developer.vista.co/digital-platform/getting-started/security).
+RTS publishes an [XML API contract](https://helpdesk.rts-solutions.com/portal/en/kb/articles/api-documentation-30-12-2022)
+and Agile publishes [WebSales Feed return fields](https://support.agiletix.com/hc/en-us/articles/4442900831771-Feed-API-Return-Values-showslist-true),
+but those converters were not added without sanitized deployment fixtures to
+test vendor-specific endpoint and authentication behaviour.
 
 ### dcinenet_catcher
 

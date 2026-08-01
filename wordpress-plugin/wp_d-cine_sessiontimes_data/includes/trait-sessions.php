@@ -31,6 +31,8 @@ trait WP_DCine_Sessions_Trait
       $session_id_val = $edit_row ? esc_attr($edit_row->session_id) : '';
       $film_id_val = $edit_row ? esc_attr($edit_row->film_id) : '';
       $auditorium_val = $edit_row ? esc_attr($edit_row->auditorium_id) : '';
+      $canonical_val = $edit_row ? esc_attr($edit_row->canonical_url) : '';
+      $status_val = $edit_row && $edit_row->status ? $edit_row->status : 'scheduled';
       // Format for HTML5 datetime-local input (YYYY-MM-DDTHH:MM)
       if ($edit_row && !empty($edit_row->start_time_local)) {
         $start_local_val = esc_attr(date('Y-m-d\TH:i', strtotime($edit_row->start_time_local)));
@@ -57,6 +59,12 @@ trait WP_DCine_Sessions_Trait
       }
       echo '</select></td></tr>';
       echo '<tr><th><label>Auditorium</label></th><td><input name="auditorium_id" type="text" value="' . $auditorium_val . '" class="regular-text" /></td></tr>';
+      echo '<tr><th><label>Canonical URL</label></th><td><input name="canonical_url" type="url" value="' . $canonical_val . '" class="regular-text" /></td></tr>';
+      echo '<tr><th><label>Status</label></th><td><select name="status">';
+      foreach (array('scheduled', 'cancelled', 'postponed', 'rescheduled') as $status_option) {
+        printf('<option value="%s" %s>%s</option>', esc_attr($status_option), selected($status_val, $status_option, false), esc_html(ucfirst($status_option)));
+      }
+      echo '</select></td></tr>';
       echo '<tr><th><label>Start Time (local)</label></th><td><input name="start_time_local" type="datetime-local" value="' . $start_local_val . '" class="regular-text" /></td></tr>';
       echo '<tr><th><label>Start Time (UTC)</label></th><td><input name="start_time_utc" type="text" value="' . $start_utc_val . '" class="regular-text" /></td></tr>';
       echo '<tr><th><label>Seating capacity</label></th><td><input name="seating_capacity" type="number" value="' . $seating_capacity_val . '" class="small-text" /></td></tr>';
@@ -94,6 +102,10 @@ trait WP_DCine_Sessions_Trait
     $session_id = isset($_POST['session_id']) ? sanitize_text_field($_POST['session_id']) : '';
     $film_id = isset($_POST['film_id']) ? sanitize_text_field($_POST['film_id']) : '';
     $auditorium = isset($_POST['auditorium_id']) ? sanitize_text_field($_POST['auditorium_id']) : null;
+    $canonical_url = isset($_POST['canonical_url']) ? esc_url_raw($_POST['canonical_url']) : null;
+    $status = isset($_POST['status']) && in_array($_POST['status'], array('scheduled', 'cancelled', 'postponed', 'rescheduled'), true)
+      ? sanitize_text_field($_POST['status'])
+      : 'scheduled';
     $start_local = isset($_POST['start_time_local']) ? sanitize_text_field($_POST['start_time_local']) : null;
     $start_utc = isset($_POST['start_time_utc']) ? sanitize_text_field($_POST['start_time_utc']) : null;
     $seating_capacity = isset($_POST['seating_capacity']) ? intval($_POST['seating_capacity']) : null;
@@ -106,10 +118,23 @@ trait WP_DCine_Sessions_Trait
     }
 
     $exists = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$table} WHERE session_id = %s", $session_id));
+    $start_rfc3339 = null;
+    if ($start_local) {
+      $opts = get_option($this->option_name, array());
+      $timezone = isset($opts['cinema']['timezone']) ? $opts['cinema']['timezone'] : wp_timezone_string();
+      try {
+        $start_rfc3339 = (new DateTimeImmutable($start_local, new DateTimeZone($timezone)))->format(DateTimeInterface::RFC3339);
+      } catch (Exception $error) {
+        $start_rfc3339 = null;
+      }
+    }
     $payload = array(
       'session_id' => $session_id,
       'film_id' => $film_id,
       'auditorium_id' => $auditorium,
+      'canonical_url' => $canonical_url,
+      'status' => $status,
+      'start_time' => $start_rfc3339,
       'start_time_local' => $start_local ? date('Y-m-d H:i:s', strtotime($start_local)) : null,
       'start_time_utc' => $start_utc ? date('Y-m-d H:i:s', strtotime($start_utc)) : null,
       'seating_capacity' => $seating_capacity,

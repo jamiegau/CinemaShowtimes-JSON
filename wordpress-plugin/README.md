@@ -1,13 +1,80 @@
-Under this folder you will find a Wordpress plugin source for a tool that does the following.
+# CinemaShowtimes-JSON 1.1 WordPress plugin
 
-Tool Outline:  The tool will have a setup page that you can set up a url endpoint that returns JSON as outlined in the direcotry above RRADME.md files.  You must also set a API string that must be used to athenrticate against the endpoing.
-This end point can be set to manual, or automatic periodic calls.  set from 1-60 minutes.
+`wp_d-cine_sessiontimes_data` imports, stores, edits and exports
+`cinemashowtimes-json/1.1`.
 
-Then the endpoint is called, it will take the response as outlines in CinemaShowtimes-full-example-with-description.json5, and store it into a database of Films, and sessions.  These tables should represent all the possible values in the example.
+## What changed in 0.2.0
 
-The setup page should also allow the user to set a endpoint on the wordpress website that can then reproduce the CinemaShowtimes-full-example-with-description.json5 from the database.
+- Strictly accepts 1.1 full and delta feeds.
+- Preserves the complete raw JSON for every film, auditorium and session while
+  indexing useful fields in WordPress tables.
+- Round-trips canonical URLs, regional classifications/releases, media,
+  provenance, presentation, accessibility, offers, availability and extensions.
+- Imports cinema/feed/publisher/licence/freshness metadata.
+- Supports multi-cinema feed metadata and per-session `cinema_id`.
+- Reconciles collections present in a full feed while retaining records marked
+  read-only; omitted optional collections are left untouched.
+- Applies delta tombstones without deleting records marked read-only.
+- Exports a schema-valid full feed rather than database columns.
+- Provides public or key-protected REST reads with ETag and cache headers.
+- Uses header-only API keys and WordPress REST permission callbacks.
+- Adds nonce protection to manual fetch and corrects custom WP-Cron intervals.
 
-After this has been done, we need to add a plugin menu that allows CRUD functions on the Films and sessions table, two different menus.
-This menau also allows the user to mark a Film or session as READ-ONLY, so will be ignored if an imported json file will ignore items if they already exist and leave them as is and not update those items.
- The plugin should be called "wp_d-cine.com_sessiontimes_data"
- 
+## Installation and database upgrade
+
+Copy `wp_d-cine_sessiontimes_data` to `wp-content/plugins` and activate it.
+Activation uses `dbDelta()` to add the 1.1 columns and lossless `raw_payload`
+columns without removing the original indexed fields.
+
+Back up the WordPress database before upgrading an existing installation.
+
+## REST endpoints
+
+| Method | Endpoint | Purpose |
+| --- | --- | --- |
+| `POST` | `/wp-json/cine/v1/import` | Import a 1.1 full or delta feed; requires the import `X-CINE-API` key |
+| `GET` | `/wp-json/cine/v1/showtimes` | Canonical local 1.1 feed |
+| `GET` | `/wp-json/cine/v1/export` | Compatibility alias for the local feed |
+| `GET` | `/wp-json/cine/v1/films/{film_id}` | One film entity |
+| `GET` | `/wp-json/cine/v1/sessions/{session_id}` | One session entity |
+
+Public discovery reads are enabled by default and can be disabled in Settings.
+When disabled, send the configured local key in `X-CINE-API`. API keys are not
+accepted in query strings, to reduce leakage through logs and referrers.
+
+Example import:
+
+```sh
+curl --request POST \
+  --header 'Content-Type: application/json' \
+  --header 'X-CINE-API: replace-with-import-key' \
+  --data-binary @examples/CinemaShowtimes-1.1-example.json \
+  'https://cinema.example.com/wp-json/cine/v1/import'
+```
+
+## Storage model
+
+The database uses two complementary representations:
+
+1. `raw_payload` retains the complete validated entity for lossless future
+   compatibility.
+2. Indexed columns support admin lists and common edits.
+
+During export, indexed edits are overlaid on the original entity. WordPress
+primary keys, timestamps and read-only flags are never exposed in the feed.
+Legacy 1.0 JSON stored in older indexed columns is exported under its legacy
+alias rather than being mislabelled as a 1.1 object.
+
+## Validation
+
+The repository's test harness imports the complete 1.1 example into a minimal
+WordPress-compatible in-memory store and validates the exported round trip:
+
+```sh
+roundtrip="$(mktemp)"
+php tests/php/wordpress-roundtrip.php "$roundtrip"
+python tools/validate_examples.py --feed "$roundtrip"
+```
+
+The harness is not a replacement for testing against the exact WordPress, PHP
+and database versions used in production.

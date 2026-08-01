@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.1 implementation update - 2026-08-01
+
+- Upgraded the Veezi converter to 1.1 using the documented Film, Session,
+  Screen and WebSession APIs.
+- Upgraded VenueMaster to 1.1 with correct timezone-aware timestamps,
+  cancellations, auditorium accessibility, price-group offers and safe
+  availability handling.
+- Added a Vista Digital Platform OCAPI converter for sites, localized films,
+  screens and business-date showtimes.
+- Added shared dependency-free PHP mapping and HTTP helpers.
+- Upgraded the WordPress plugin to 0.2.0 with strict 1.1 imports, lossless raw
+  entity storage, delta tombstones, clean exports, ETag/cache support and
+  protected REST permissions.
+- Added sanitized Veezi and Vista fixtures plus converter and WordPress
+  round-trip compliance tests.
+- Extended GitHub Actions to syntax-check PHP and schema-validate every
+  generated feed.
+
 ## 1.1 - 2026-08-01
 
 - Added a formal JSON Schema Draft 2020-12 definition.
@@ -21,5 +39,4 @@
 - Removed the credential literal from the Veezi example; it now requires the
   `VEEZI_API_KEY` environment variable.
 
-The original root examples and conversion tools remain on 1.0 until their
-producers supply the new required identity and freshness semantics.
+The original root examples remain as 1.0 migration fixtures.
