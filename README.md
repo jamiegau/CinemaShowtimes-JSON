@@ -136,10 +136,12 @@ A minimal 1.1 example is below.
 
 The [conversion guide](conversion-tools/README.md) covers:
 
-- Veezi `v4/film`, `v1/session`, `v1/screen` and `v1/websession`;
-- VenueMaster VenueSchedule 7.5, including ticket price groups;
-- Vista Digital Platform OCAPI sites, films, screens and business-date
-  showtimes.
+- [Veezi implementation](conversion-tools/Veezi/README.md), using `v4/film`,
+  `v1/session`, `v1/screen` and `v1/websession`;
+- [VenueMaster implementation](conversion-tools/VenueMaster/README.md), using
+  VenueSchedule 7.5 including ticket price groups; and
+- [Vista Digital Platform implementation](conversion-tools/Vista/README.md),
+  using OCAPI sites, films, screens and business-date showtimes.
 
 All three emit 1.1, use environment-based credentials and have sanitized
 fixtures that are generated and validated in CI. Additional POS converters are
@@ -163,13 +165,13 @@ reads use the `X-CINE-API` header rather than query-string credentials.
 Install `jsonschema`, then validate the shipped examples:
 
 ```sh
-python -m pip install -r requirements-dev.txt
-python tools/validate_examples.py
+python3 -m pip install -r requirements-dev.txt
+python3 tools/validate_examples.py
 
 output_dir="$(mktemp -d)"
 php tests/php/generate-converter-fixtures.php "$output_dir"
 php tests/php/wordpress-roundtrip.php "$output_dir/wordpress-1.1.json"
-python tools/validate_examples.py \
+python3 tools/validate_examples.py \
   --feed "$output_dir/veezi-1.1.json" \
   --feed "$output_dir/venuemaster-1.1.json" \
   --feed "$output_dir/vista-1.1.json" \

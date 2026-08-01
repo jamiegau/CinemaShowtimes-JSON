@@ -6,7 +6,7 @@
  *   VENUEMASTER_SCHEDULE_URL
  *
  * For a local fixture:
- *   VENUEMASTER_SCHEDULE_URL=venue-schedule-example.json
+ *   VENUEMASTER_SCHEDULE_URL=venue-schedule-example_pretty.json
  */
 
 require_once __DIR__ . '/venue-master-mapper.php';

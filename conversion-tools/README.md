@@ -6,14 +6,17 @@ HTTP wrappers so it can be tested without live credentials.
 
 ## Implemented converters
 
-| POS | Source | Entry point | Coverage |
+| POS | Implementation guide | Entry point | Coverage |
 | --- | --- | --- | --- |
-| Veezi | [Official Veezi API](https://api.us.veezi.com/help/) | `Veezi/veezi-to-CST-JSON.php` | Films, people, media, screens, exact session times, seating mode, sales channels, booking URLs and aggregate availability |
-| VenueMaster | Supplied VenueSchedule 7.5 guide/feed | `VenueMaster/venue-to-CST-JSON.php` | Installation, films, ratings, auditoria, accessibility, cancellations, price groups/offers, booking URLs and availability |
-| Vista Digital Platform | [Official OCAPI](https://developer.vista.co/openapi/digital-platform/openapi) | `Vista/vista-digital-to-CST-JSON.php` | Site, localized films, ratings, genres, people, showtimes, screens, presentation attributes and sold-out state |
+| Veezi | [Install and operate](Veezi/README.md) | [`veezi-to-CST-JSON.php`](Veezi/veezi-to-CST-JSON.php) | Films, people, media, screens, exact session times, seating mode, sales channels, booking URLs and aggregate availability |
+| VenueMaster | [Install and operate](VenueMaster/README.md) | [`venue-to-CST-JSON.php`](VenueMaster/venue-to-CST-JSON.php) | Installation, films, ratings, auditoria, accessibility, cancellations, price groups/offers, booking URLs and availability |
+| Vista Digital Platform | [Install and operate](Vista/README.md) | [`vista-digital-to-CST-JSON.php`](Vista/vista-digital-to-CST-JSON.php) | Site, localized films, ratings, genres, people, showtimes, screens, presentation attributes and sold-out state |
 
-The common helpers are in `lib/cinemashowtimes-1.1.php`. Pure mapping functions
-are in each vendor's `*-mapper.php` file.
+Each implementation guide walks through prerequisites, cinema configuration,
+credentials, command-line and schema testing, web deployment, monitoring,
+custom mapping and troubleshooting. The common helpers are in
+`lib/cinemashowtimes-1.1.php`. Pure mapping functions are in each vendor's
+`*-mapper.php` file.
 
 ## Security and deployment
 
@@ -72,7 +75,7 @@ For local testing:
 
 ```sh
 cd conversion-tools/VenueMaster
-VENUEMASTER_SCHEDULE_URL=venue-schedule-example.json php venue-to-CST-JSON.php
+VENUEMASTER_SCHEDULE_URL=venue-schedule-example_pretty.json php venue-to-CST-JSON.php
 ```
 
 TLS verification is always enabled. Do not expose a POS server directly by
@@ -137,7 +140,7 @@ From the repository root:
 ```sh
 output_dir="$(mktemp -d)"
 php tests/php/generate-converter-fixtures.php "$output_dir"
-python tools/validate_examples.py \
+python3 tools/validate_examples.py \
   --feed "$output_dir/veezi-1.1.json" \
   --feed "$output_dir/venuemaster-1.1.json" \
   --feed "$output_dir/vista-1.1.json"
