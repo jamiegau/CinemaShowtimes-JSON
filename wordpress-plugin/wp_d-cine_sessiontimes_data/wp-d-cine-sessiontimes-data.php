@@ -22,6 +22,7 @@ class WP_DCine_Sessiontimes_Data
   private static $instance = null;
   private $option_name = 'wp_d_cine_settings';
   private $feed_option_name = 'wp_d_cine_feed_metadata_11';
+  private $database_version = '0.2.0';
 
   use WP_DCine_Settings_Trait;
   use WP_DCine_Films_Trait;
@@ -41,6 +42,7 @@ class WP_DCine_Sessiontimes_Data
   {
     register_activation_hook(__FILE__, array($this, 'activate'));
     register_deactivation_hook(__FILE__, array($this, 'deactivate'));
+    add_action('plugins_loaded', array($this, 'maybe_upgrade'));
     add_filter('cron_schedules', array($this, 'register_cron_intervals'));
     add_action('admin_menu', array($this, 'admin_menu'));
     add_action('admin_init', array($this, 'register_settings'));
@@ -68,7 +70,17 @@ class WP_DCine_Sessiontimes_Data
       ), '', false);
     }
     $this->create_tables();
+    update_option('wp_d_cine_database_version', $this->database_version, false);
     $this->ensure_cron();
+  }
+
+  public function maybe_upgrade()
+  {
+    $installed = get_option('wp_d_cine_database_version', '0.0.0');
+    if (version_compare($installed, $this->database_version, '<')) {
+      $this->create_tables();
+      update_option('wp_d_cine_database_version', $this->database_version, false);
+    }
   }
 
   public function deactivate()

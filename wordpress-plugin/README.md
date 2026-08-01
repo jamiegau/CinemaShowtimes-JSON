@@ -22,9 +22,10 @@
 
 ## Installation and database upgrade
 
-Copy `wp_d-cine_sessiontimes_data` to `wp-content/plugins` and activate it.
-Activation uses `dbDelta()` to add the 1.1 columns and lossless `raw_payload`
-columns without removing the original indexed fields.
+Copy `wp_d-cine_sessiontimes_data` to `wp-content/plugins` and activate it. A
+database-version check uses `dbDelta()` to add the 1.1 columns and lossless
+`raw_payload` columns without removing the original indexed fields, including
+when an already-active installation is upgraded.
 
 Back up the WordPress database before upgrading an existing installation.
 
