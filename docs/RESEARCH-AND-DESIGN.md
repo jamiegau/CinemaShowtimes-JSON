@@ -3,9 +3,11 @@
 Research reviewed on 1 August 2026. This document records why the standard
 changed; [`SPECIFICATION.md`](../SPECIFICATION.md) is normative.
 
-## Evidence from intended downstream systems
+## Evidence from implementation patterns
 
-The three local projects were reviewed without changing their working trees.
+The data models and operational patterns of cinema scheduling, presentation,
+facility and content systems were reviewed without making any one product
+normative.
 
 ## Existing repository implementation audit
 
@@ -42,32 +44,32 @@ and Agile publishes [WebSales Feed return fields](https://support.agiletix.com/h
 but those converters were not added without sanitized deployment fixtures to
 test vendor-specific endpoint and authentication behaviour.
 
-### dcinenet_catcher
+### Projection and presentation systems
 
-The catcher stores digital-cinema package and Composition Playlist metadata:
+Digital-cinema systems commonly store package and Composition Playlist metadata:
 stable UUIDs, content title text, language and territory data, picture and audio
 formats, frame rate, resolution, stereoscopic/encrypted flags and credit
 markers. This motivated the optional `presentation` object. Only
 consumer-facing scheduling and presentation facts are included; encryption,
 keys and infrastructure details are explicitly excluded.
 
-### clubmovie
+### Scheduling and point-of-sale systems
 
-The scheduling system distinguishes advertised, preshow, feature and cleanup
-times; allocated versus open seating; public/private sessions; sales channels;
-price cards; operational status; accessibility; and available, held, sold and
-house seats. This motivated precise time semantics, `seating_mode`,
-`sales_channels`, `session_type`, session status, offers and timestamped
-availability. Patron and internal financial data remain outside the public
-profile.
+Cinema scheduling and point-of-sale systems commonly distinguish advertised,
+preshow, feature and cleanup times; allocated versus open seating;
+public/private sessions; sales channels; price cards; operational status;
+accessibility; and available, held, sold and house seats. This motivated precise
+time semantics, `seating_mode`, `sales_channels`, `session_type`, session
+status, offers and timestamped availability. Patron and internal financial data
+remain outside the public profile.
 
-### dcnServices
+### Facility and content services
 
-The service layer has rich facility/auditorium capabilities, external IDs,
-regional releases and classifications, media hashes and technical metadata,
-source scores and provenance. This motivated structured addresses, regional
-arrays, auditorium presentation capabilities, `media`, rights, hashes and
-provenance.
+Facility and content services commonly hold rich auditorium capabilities,
+external IDs, regional releases and classifications, media hashes and technical
+metadata, source scores and provenance. This motivated structured addresses,
+regional arrays, auditorium presentation capabilities, `media`, rights, hashes
+and provenance.
 
 ## Standards and platform findings
 

@@ -1,10 +1,10 @@
 <?php
 /**
- * Plugin Name: d-cine.com Sessiontimes Data
+ * Plugin Name: CinemaShowtimes-JSON Feed
  * Description: Lossless CinemaShowtimes-JSON 1.1 import, local storage, admin CRUD and feed export.
- * Version: 0.2.0
+ * Version: 0.3.0
  * Author: James Gardiner
- * Text Domain: wp-d-cine-sessiontimes-data
+ * Text Domain: cinemashowtimes-json
  */
 
 if (!defined('ABSPATH')) {
@@ -17,18 +17,18 @@ require_once plugin_dir_path(__FILE__) . 'includes/trait-sessions.php';
 require_once plugin_dir_path(__FILE__) . 'includes/trait-cinema.php';
 require_once plugin_dir_path(__FILE__) . 'includes/trait-auditoria.php';
 
-class WP_DCine_Sessiontimes_Data
+class CinemaShowtimes_JSON_Plugin
 {
   private static $instance = null;
-  private $option_name = 'wp_d_cine_settings';
-  private $feed_option_name = 'wp_d_cine_feed_metadata_11';
-  private $database_version = '0.2.0';
+  private $option_name = 'cinemashowtimes_json_settings';
+  private $feed_option_name = 'cinemashowtimes_json_feed_metadata_11';
+  private $database_version = '0.3.0';
 
-  use WP_DCine_Settings_Trait;
-  use WP_DCine_Films_Trait;
-  use WP_DCine_Sessions_Trait;
-  use WP_DCine_Cinema_Trait;
-  use WP_DCine_Auditoria_Trait;
+  use CinemaShowtimes_JSON_Settings_Trait;
+  use CinemaShowtimes_JSON_Films_Trait;
+  use CinemaShowtimes_JSON_Sessions_Trait;
+  use CinemaShowtimes_JSON_Cinema_Trait;
+  use CinemaShowtimes_JSON_Auditoria_Trait;
 
   public static function instance()
   {
@@ -46,15 +46,15 @@ class WP_DCine_Sessiontimes_Data
     add_filter('cron_schedules', array($this, 'register_cron_intervals'));
     add_action('admin_menu', array($this, 'admin_menu'));
     add_action('admin_init', array($this, 'register_settings'));
-    add_action('admin_post_wp_d_cine_save_film', array($this, 'handle_save_film'));
-    add_action('admin_post_wp_d_cine_delete_film', array($this, 'handle_delete_film'));
-    add_action('admin_post_wp_d_cine_save_session', array($this, 'handle_save_session'));
-    add_action('admin_post_wp_d_cine_delete_session', array($this, 'handle_delete_session'));
-    add_action('admin_post_wp_d_cine_save_auditorium', array($this, 'handle_save_auditorium'));
-    add_action('admin_post_wp_d_cine_delete_auditorium', array($this, 'handle_delete_auditorium'));
+    add_action('admin_post_cinemashowtimes_json_save_film', array($this, 'handle_save_film'));
+    add_action('admin_post_cinemashowtimes_json_delete_film', array($this, 'handle_delete_film'));
+    add_action('admin_post_cinemashowtimes_json_save_session', array($this, 'handle_save_session'));
+    add_action('admin_post_cinemashowtimes_json_delete_session', array($this, 'handle_delete_session'));
+    add_action('admin_post_cinemashowtimes_json_save_auditorium', array($this, 'handle_save_auditorium'));
+    add_action('admin_post_cinemashowtimes_json_delete_auditorium', array($this, 'handle_delete_auditorium'));
     add_action('rest_api_init', array($this, 'register_rest_routes'));
-    add_action('wp_d_cine_scheduled_fetch', array($this, 'scheduled_fetch'));
-    add_action('admin_post_wp_d_cine_manual_fetch', array($this, 'manual_fetch'));
+    add_action('cinemashowtimes_json_scheduled_fetch', array($this, 'scheduled_fetch'));
+    add_action('admin_post_cinemashowtimes_json_manual_fetch', array($this, 'manual_fetch'));
   }
 
   public function activate()
@@ -70,28 +70,28 @@ class WP_DCine_Sessiontimes_Data
       ), '', false);
     }
     $this->create_tables();
-    update_option('wp_d_cine_database_version', $this->database_version, false);
+    update_option('cinemashowtimes_json_database_version', $this->database_version, false);
     $this->ensure_cron();
   }
 
   public function maybe_upgrade()
   {
-    $installed = get_option('wp_d_cine_database_version', '0.0.0');
+    $installed = get_option('cinemashowtimes_json_database_version', '0.0.0');
     if (version_compare($installed, $this->database_version, '<')) {
       $this->create_tables();
-      update_option('wp_d_cine_database_version', $this->database_version, false);
+      update_option('cinemashowtimes_json_database_version', $this->database_version, false);
     }
   }
 
   public function deactivate()
   {
-    wp_clear_scheduled_hook('wp_d_cine_scheduled_fetch');
+    wp_clear_scheduled_hook('cinemashowtimes_json_scheduled_fetch');
   }
 
   public function register_cron_intervals($schedules)
   {
     for ($minutes = 1; $minutes <= 60; $minutes++) {
-      $key = 'wp_d_cine_interval_' . $minutes;
+      $key = 'cinemashowtimes_json_interval_' . $minutes;
       $schedules[$key] = array(
         'interval' => $minutes * 60,
         'display' => sprintf('Every %d minutes', $minutes),
@@ -105,9 +105,9 @@ class WP_DCine_Sessiontimes_Data
     $opts = get_option($this->option_name, array());
     $enabled = isset($opts['auto_mode']) && $opts['auto_mode'] === '1';
     $minutes = isset($opts['interval_minutes']) ? max(1, min(60, intval($opts['interval_minutes']))) : 15;
-    wp_clear_scheduled_hook('wp_d_cine_scheduled_fetch');
+    wp_clear_scheduled_hook('cinemashowtimes_json_scheduled_fetch');
     if ($enabled) {
-      wp_schedule_event(time(), 'wp_d_cine_interval_' . $minutes, 'wp_d_cine_scheduled_fetch');
+      wp_schedule_event(time(), 'cinemashowtimes_json_interval_' . $minutes, 'cinemashowtimes_json_scheduled_fetch');
     }
   }
 
@@ -191,38 +191,38 @@ class WP_DCine_Sessiontimes_Data
 
   public function admin_menu()
   {
-    $root_slug = 'wp-d-cine-root';
-    add_menu_page('d-cine Sessiontimes', 'd-cine Sessiontimes', 'manage_options', $root_slug, array($this, 'settings_page'), 'dashicons-video-alt2', 26);
+    $root_slug = 'cinemashowtimes-json-root';
+    add_menu_page('CinemaShowtimes-JSON', 'CinemaShowtimes-JSON', 'manage_options', $root_slug, array($this, 'settings_page'), 'dashicons-video-alt2', 26);
     add_submenu_page($root_slug, 'Settings', 'Settings', 'manage_options', $root_slug, array($this, 'settings_page'));
-    add_submenu_page($root_slug, 'Cinema Info', 'Cinema Info', 'manage_options', 'wp-d-cine-cinema', array($this, 'cinema_page'));
-    add_submenu_page($root_slug, 'Auditoria', 'Auditoria', 'manage_options', 'wp-d-cine-auditoria', array($this, 'auditoria_page'));
-    add_submenu_page($root_slug, 'Films', 'Films', 'manage_options', 'wp-d-cine-films', array($this, 'films_page'));
-    add_submenu_page($root_slug, 'Sessions', 'Sessions', 'manage_options', 'wp-d-cine-sessions', array($this, 'sessions_page'));
+    add_submenu_page($root_slug, 'Cinema Info', 'Cinema Info', 'manage_options', 'cinemashowtimes-json-cinema', array($this, 'cinema_page'));
+    add_submenu_page($root_slug, 'Auditoria', 'Auditoria', 'manage_options', 'cinemashowtimes-json-auditoria', array($this, 'auditoria_page'));
+    add_submenu_page($root_slug, 'Films', 'Films', 'manage_options', 'cinemashowtimes-json-films', array($this, 'films_page'));
+    add_submenu_page($root_slug, 'Sessions', 'Sessions', 'manage_options', 'cinemashowtimes-json-sessions', array($this, 'sessions_page'));
   }
 
   public function register_rest_routes()
   {
-    register_rest_route('cine/v1', '/import', array(
+    register_rest_route('cinemashowtimes/v1', '/import', array(
       'methods' => WP_REST_Server::CREATABLE,
       'callback' => array($this, 'rest_import'),
       'permission_callback' => array($this, 'rest_can_import'),
     ));
-    register_rest_route('cine/v1', '/export', array(
+    register_rest_route('cinemashowtimes/v1', '/export', array(
       'methods' => WP_REST_Server::READABLE,
       'callback' => array($this, 'rest_feed'),
       'permission_callback' => array($this, 'rest_can_read'),
     ));
-    register_rest_route('cine/v1', '/showtimes', array(
+    register_rest_route('cinemashowtimes/v1', '/showtimes', array(
       'methods' => WP_REST_Server::READABLE,
       'callback' => array($this, 'rest_feed'),
       'permission_callback' => array($this, 'rest_can_read'),
     ));
-    register_rest_route('cine/v1', '/films/(?P<film_id>[A-Za-z0-9._~-]+)', array(
+    register_rest_route('cinemashowtimes/v1', '/films/(?P<film_id>[A-Za-z0-9._~-]+)', array(
       'methods' => WP_REST_Server::READABLE,
       'callback' => array($this, 'rest_film'),
       'permission_callback' => array($this, 'rest_can_read'),
     ));
-    register_rest_route('cine/v1', '/sessions/(?P<session_id>[A-Za-z0-9._~-]+)', array(
+    register_rest_route('cinemashowtimes/v1', '/sessions/(?P<session_id>[A-Za-z0-9._~-]+)', array(
       'methods' => WP_REST_Server::READABLE,
       'callback' => array($this, 'rest_session'),
       'permission_callback' => array($this, 'rest_can_read'),
@@ -231,7 +231,7 @@ class WP_DCine_Sessiontimes_Data
 
   private function request_api_key($request)
   {
-    $header = $request->get_header('X-CINE-API');
+    $header = $request->get_header('X-CINEMASHOWTIMES-API');
     return is_string($header) ? $header : '';
   }
 
@@ -246,7 +246,7 @@ class WP_DCine_Sessiontimes_Data
   {
     return $this->key_matches($this->request_api_key($request), 'api_key')
       ? true
-      : new WP_Error('cine_forbidden', 'A valid X-CINE-API import key is required.', array('status' => 401));
+      : new WP_Error('cinemashowtimes_forbidden', 'A valid X-CINEMASHOWTIMES-API import key is required.', array('status' => 401));
   }
 
   public function rest_can_read($request)
@@ -257,7 +257,7 @@ class WP_DCine_Sessiontimes_Data
     }
     return $this->key_matches($this->request_api_key($request), 'local_api_key')
       ? true
-      : new WP_Error('cine_forbidden', 'A valid X-CINE-API feed key is required.', array('status' => 401));
+      : new WP_Error('cinemashowtimes_forbidden', 'A valid X-CINEMASHOWTIMES-API feed key is required.', array('status' => 401));
   }
 
   private function valid_rfc3339($value)
@@ -276,77 +276,77 @@ class WP_DCine_Sessiontimes_Data
   private function validate_feed_11($data)
   {
     if (!is_array($data) || (isset($data['spec']) ? $data['spec'] : '') !== 'cinemashowtimes-json/1.1') {
-      return new WP_Error('cine_invalid_spec', 'Only cinemashowtimes-json/1.1 feeds are accepted.');
+      return new WP_Error('cinemashowtimes_invalid_spec', 'Only cinemashowtimes-json/1.1 feeds are accepted.');
     }
     foreach (array('feed_id', 'mode', 'generated_at', 'publisher') as $field) {
       if (!isset($data[$field]) || $data[$field] === '') {
-        return new WP_Error('cine_missing_field', 'Required feed field is missing: ' . $field);
+        return new WP_Error('cinemashowtimes_missing_field', 'Required feed field is missing: ' . $field);
       }
     }
     if (!in_array($data['mode'], array('full', 'delta'), true)) {
-      return new WP_Error('cine_invalid_mode', 'Feed mode must be full or delta.');
+      return new WP_Error('cinemashowtimes_invalid_mode', 'Feed mode must be full or delta.');
     }
     if (!$this->valid_rfc3339($data['generated_at'])) {
-      return new WP_Error('cine_invalid_generated_at', 'generated_at must be RFC 3339 with a UTC offset.');
+      return new WP_Error('cinemashowtimes_invalid_generated_at', 'generated_at must be RFC 3339 with a UTC offset.');
     }
     if (!is_array($data['publisher']) || empty($data['publisher']['name'])) {
-      return new WP_Error('cine_invalid_publisher', 'publisher.name is required.');
+      return new WP_Error('cinemashowtimes_invalid_publisher', 'publisher.name is required.');
     }
     if ($data['mode'] === 'full') {
       $hasCinema = isset($data['cinema']) && is_array($data['cinema']);
       $hasCinemas = isset($data['cinemas']) && is_array($data['cinemas']) && !empty($data['cinemas']);
       if ($hasCinema === $hasCinemas) {
-        return new WP_Error('cine_invalid_cinemas', 'A full feed must contain exactly one of cinema or cinemas.');
+        return new WP_Error('cinemashowtimes_invalid_cinemas', 'A full feed must contain exactly one of cinema or cinemas.');
       }
       if (!isset($data['films']) || !is_array($data['films'])) {
-        return new WP_Error('cine_missing_films', 'A full feed must contain a films array.');
+        return new WP_Error('cinemashowtimes_missing_films', 'A full feed must contain a films array.');
       }
       $cinemaItems = $hasCinema ? array($data['cinema']) : $data['cinemas'];
       foreach ($cinemaItems as $cinema) {
         if (empty($cinema['cinema_id']) || empty($cinema['name']) || empty($cinema['timezone'])) {
-          return new WP_Error('cine_invalid_cinema', 'Every cinema requires cinema_id, name and timezone.');
+          return new WP_Error('cinemashowtimes_invalid_cinema', 'Every cinema requires cinema_id, name and timezone.');
         }
       }
     } elseif (!isset($data['sequence'])) {
-      return new WP_Error('cine_missing_sequence', 'A delta feed must contain sequence.');
+      return new WP_Error('cinemashowtimes_missing_sequence', 'A delta feed must contain sequence.');
     }
     foreach ((array) (isset($data['films']) ? $data['films'] : array()) as $film) {
       if (empty($film['film_id']) || empty($film['title'])) {
-        return new WP_Error('cine_invalid_film', 'Every film requires film_id and title.');
+        return new WP_Error('cinemashowtimes_invalid_film', 'Every film requires film_id and title.');
       }
       if (!empty($film['canonical_url']) && !filter_var($film['canonical_url'], FILTER_VALIDATE_URL)) {
-        return new WP_Error('cine_invalid_film_url', 'Film canonical_url must be an absolute URL.');
+        return new WP_Error('cinemashowtimes_invalid_film_url', 'Film canonical_url must be an absolute URL.');
       }
     }
     foreach ((array) (isset($data['auditoria']) ? $data['auditoria'] : array()) as $auditorium) {
       if (empty($auditorium['auditorium_id']) || empty($auditorium['name'])) {
-        return new WP_Error('cine_invalid_auditorium', 'Every auditorium requires auditorium_id and name.');
+        return new WP_Error('cinemashowtimes_invalid_auditorium', 'Every auditorium requires auditorium_id and name.');
       }
     }
     foreach ((array) (isset($data['sessions']) ? $data['sessions'] : array()) as $session) {
       foreach (array('session_id', 'film_id', 'canonical_url', 'status', 'start_time') as $field) {
         if (empty($session[$field])) {
-          return new WP_Error('cine_invalid_session', 'Every session requires ' . $field . '.');
+          return new WP_Error('cinemashowtimes_invalid_session', 'Every session requires ' . $field . '.');
         }
       }
       if (!in_array($session['status'], array('scheduled', 'cancelled', 'postponed', 'rescheduled'), true)) {
-        return new WP_Error('cine_invalid_session_status', 'Session status is invalid.');
+        return new WP_Error('cinemashowtimes_invalid_session_status', 'Session status is invalid.');
       }
       if (!filter_var($session['canonical_url'], FILTER_VALIDATE_URL)
         || !$this->valid_rfc3339($session['start_time'])) {
-        return new WP_Error('cine_invalid_session_format', 'Session URL or start_time is invalid.');
+        return new WP_Error('cinemashowtimes_invalid_session_format', 'Session URL or start_time is invalid.');
       }
       if (isset($session['availability'])) {
         if (empty($session['availability']['status'])
           || empty($session['availability']['updated_at'])
           || !$this->valid_rfc3339($session['availability']['updated_at'])) {
-          return new WP_Error('cine_invalid_availability', 'Availability requires status and RFC 3339 updated_at.');
+          return new WP_Error('cinemashowtimes_invalid_availability', 'Availability requires status and RFC 3339 updated_at.');
         }
       }
       foreach ((array) (isset($session['offers']) ? $session['offers'] : array()) as $offer) {
         foreach (array('offer_id', 'price', 'currency', 'booking_url') as $field) {
           if (!isset($offer[$field]) || $offer[$field] === '') {
-            return new WP_Error('cine_invalid_offer', 'Every offer requires ' . $field . '.');
+            return new WP_Error('cinemashowtimes_invalid_offer', 'Every offer requires ' . $field . '.');
           }
         }
       }
@@ -358,7 +358,7 @@ class WP_DCine_Sessiontimes_Data
   {
     $data = json_decode($request->get_body(), true);
     if (!is_array($data)) {
-      return new WP_Error('cine_invalid_json', 'Invalid JSON payload.', array('status' => 400));
+      return new WP_Error('cinemashowtimes_invalid_json', 'Invalid JSON payload.', array('status' => 400));
     }
     $valid = $this->validate_feed_11($data);
     if (is_wp_error($valid)) {
@@ -401,7 +401,7 @@ class WP_DCine_Sessiontimes_Data
         return rest_ensure_response($film);
       }
     }
-    return new WP_Error('cine_not_found', 'Film not found.', array('status' => 404));
+    return new WP_Error('cinemashowtimes_not_found', 'Film not found.', array('status' => 404));
   }
 
   public function rest_session($request)
@@ -412,7 +412,7 @@ class WP_DCine_Sessiontimes_Data
         return rest_ensure_response($session);
       }
     }
-    return new WP_Error('cine_not_found', 'Session not found.', array('status' => 404));
+    return new WP_Error('cinemashowtimes_not_found', 'Session not found.', array('status' => 404));
   }
 
   public function manual_fetch()
@@ -420,9 +420,9 @@ class WP_DCine_Sessiontimes_Data
     if (!current_user_can('manage_options')) {
       wp_die('Unauthorized');
     }
-    check_admin_referer('wp_d_cine_manual_fetch');
+    check_admin_referer('cinemashowtimes_json_manual_fetch');
     $this->scheduled_fetch();
-    wp_safe_redirect(admin_url('admin.php?page=wp-d-cine-root'));
+    wp_safe_redirect(admin_url('admin.php?page=cinemashowtimes-json-root'));
     exit;
   }
 
@@ -434,27 +434,27 @@ class WP_DCine_Sessiontimes_Data
     }
     $args = array('timeout' => 30, 'headers' => array('Accept' => 'application/json'));
     if (!empty($opts['api_key'])) {
-      $args['headers']['X-CINE-API'] = $opts['api_key'];
+      $args['headers']['X-CINEMASHOWTIMES-API'] = $opts['api_key'];
     }
     $resp = wp_remote_get($opts['endpoint_url'], $args);
     if (is_wp_error($resp)) {
-      error_log('wp_d_cine fetch error: ' . $resp->get_error_message());
+      error_log('cinemashowtimes_json fetch error: ' . $resp->get_error_message());
       return;
     }
     $status = wp_remote_retrieve_response_code($resp);
     if ($status < 200 || $status >= 300) {
-      error_log('wp_d_cine fetch HTTP status: ' . $status);
+      error_log('cinemashowtimes_json fetch HTTP status: ' . $status);
       return;
     }
     $data = json_decode(wp_remote_retrieve_body($resp), true);
     $valid = $this->validate_feed_11($data);
     if (is_wp_error($valid)) {
-      error_log('wp_d_cine rejected feed: ' . $valid->get_error_message());
+      error_log('cinemashowtimes_json rejected feed: ' . $valid->get_error_message());
       return;
     }
     $result = $this->import_data($data);
     if (is_wp_error($result)) {
-      error_log('wp_d_cine import failed: ' . $result->get_error_message());
+      error_log('cinemashowtimes_json import failed: ' . $result->get_error_message());
     }
   }
 
@@ -653,7 +653,7 @@ class WP_DCine_Sessiontimes_Data
     $out['generated_at'] = gmdate('Y-m-d\\TH:i:s\\Z');
     $out['expires_at'] = gmdate('Y-m-d\\TH:i:s\\Z', time() + $ttl);
     $out['ttl_seconds'] = $ttl;
-    $out['canonical_url'] = rest_url('cine/v1/showtimes');
+    $out['canonical_url'] = rest_url('cinemashowtimes/v1/showtimes');
     $out['publisher'] = $publisher;
     $links = array();
     foreach ((array) (isset($out['links']) ? $out['links'] : array()) as $link) {
@@ -663,7 +663,7 @@ class WP_DCine_Sessiontimes_Data
     }
     $links[] = array(
       'rel' => 'self',
-      'href' => rest_url('cine/v1/showtimes'),
+      'href' => rest_url('cinemashowtimes/v1/showtimes'),
       'type' => 'application/json',
     );
     $links[] = array(
@@ -686,7 +686,7 @@ class WP_DCine_Sessiontimes_Data
       $film = $this->decoded_payload($row['raw_payload']);
       $film['film_id'] = $row['film_id'];
       $film['title'] = $row['title'];
-      $film['canonical_url'] = $row['canonical_url'] ?: rest_url('cine/v1/films/' . rawurlencode($row['film_id']));
+      $film['canonical_url'] = $row['canonical_url'] ?: rest_url('cinemashowtimes/v1/films/' . rawurlencode($row['film_id']));
       if ($row['runtime_minutes'] !== null) {
         $film['runtime_minutes'] = intval($row['runtime_minutes']);
       }
@@ -765,7 +765,7 @@ class WP_DCine_Sessiontimes_Data
         $session['auditorium_id'] = $row['auditorium_id'];
       }
       $session['canonical_url'] = $row['canonical_url']
-        ?: rest_url('cine/v1/sessions/' . rawurlencode($row['session_id']));
+        ?: rest_url('cinemashowtimes/v1/sessions/' . rawurlencode($row['session_id']));
       $session['status'] = $row['status'] ?: (isset($session['status']) ? $session['status'] : 'scheduled');
       $session['start_time'] = $startTime;
       if ($row['attributes']) {
@@ -834,4 +834,4 @@ class WP_DCine_Sessiontimes_Data
   }
 }
 
-WP_DCine_Sessiontimes_Data::instance();
+CinemaShowtimes_JSON_Plugin::instance();

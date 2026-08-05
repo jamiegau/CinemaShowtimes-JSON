@@ -3,7 +3,7 @@ if (!defined('ABSPATH')) {
   exit;
 }
 
-trait WP_DCine_Auditoria_Trait
+trait CinemaShowtimes_JSON_Auditoria_Trait
 {
   public function auditoria_page()
   {
@@ -22,10 +22,10 @@ trait WP_DCine_Auditoria_Trait
       $edit_row = null;
     }
 
-    echo '<div class="wrap"><h1>Auditoria <a class="page-title-action" href="' . esc_url(add_query_arg(array('page' => 'wp-d-cine-auditoria', 'action' => 'add'))) . '">Add New</a></h1>';
+    echo '<div class="wrap"><h1>Auditoria <a class="page-title-action" href="' . esc_url(add_query_arg(array('page' => 'cinemashowtimes-json-auditoria', 'action' => 'add'))) . '">Add New</a></h1>';
 
     if ($editing) {
-      $nonce = wp_create_nonce('wp_d_cine_save_auditorium');
+      $nonce = wp_create_nonce('cinemashowtimes_json_save_auditorium');
       $aud_id_val = $edit_row ? esc_attr($edit_row->auditorium_id) : '';
       $name_val = $edit_row ? esc_attr($edit_row->name) : '';
       $seat_count_val = $edit_row ? esc_attr($edit_row->seat_count) : '';
@@ -39,7 +39,7 @@ trait WP_DCine_Auditoria_Trait
       $read_only_checked = $edit_row && $edit_row->read_only ? 'checked' : '';
 
       echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '">';
-      echo '<input type="hidden" name="action" value="wp_d_cine_save_auditorium" />';
+      echo '<input type="hidden" name="action" value="cinemashowtimes_json_save_auditorium" />';
       echo '<input type="hidden" name="_wpnonce" value="' . esc_attr($nonce) . '" />';
       echo '<table class="form-table">';
       echo '<tr><th><label>Auditorium ID</label></th><td><input name="auditorium_id" type="text" value="' . $aud_id_val . '" ' . ($edit_row ? 'readonly' : '') . ' required class="regular-text" /></td></tr>';
@@ -52,8 +52,8 @@ trait WP_DCine_Auditoria_Trait
       echo '</table>';
       submit_button($edit_row ? 'Save Auditorium' : 'Create Auditorium');
       if ($edit_row) {
-        $del_nonce = wp_create_nonce('wp_d_cine_delete_auditorium');
-        echo '<a class="button button-secondary" href="' . esc_url(admin_url('admin-post.php?action=wp_d_cine_delete_auditorium&auditorium_id=' . rawurlencode($edit_row->auditorium_id) . '&_wpnonce=' . $del_nonce)) . '" onclick="return confirm(\'Delete this auditorium?\')">Delete</a>';
+        $del_nonce = wp_create_nonce('cinemashowtimes_json_delete_auditorium');
+        echo '<a class="button button-secondary" href="' . esc_url(admin_url('admin-post.php?action=cinemashowtimes_json_delete_auditorium&auditorium_id=' . rawurlencode($edit_row->auditorium_id) . '&_wpnonce=' . $del_nonce)) . '" onclick="return confirm(\'Delete this auditorium?\')">Delete</a>';
       }
       echo '</form>';
     }
@@ -61,7 +61,7 @@ trait WP_DCine_Auditoria_Trait
     $rows = $wpdb->get_results("SELECT * FROM {$table} ORDER BY id DESC LIMIT 500");
     echo '<table class="widefat"><thead><tr><th>ID</th><th>Auditorium ID</th><th>Name</th><th>Seats</th><th>Read Only</th><th>Actions</th></tr></thead><tbody>';
     foreach ($rows as $r) {
-      $edit_link = esc_url(add_query_arg(array('page' => 'wp-d-cine-auditoria', 'action' => 'edit', 'auditorium_id' => $r->auditorium_id), admin_url('admin.php')));
+      $edit_link = esc_url(add_query_arg(array('page' => 'cinemashowtimes-json-auditoria', 'action' => 'edit', 'auditorium_id' => $r->auditorium_id), admin_url('admin.php')));
       printf('<tr><td>%d</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td><a href="%s">Edit</a></td></tr>', intval($r->id), esc_html($r->auditorium_id), esc_html($r->name), esc_html($r->seat_count), $r->read_only ? 'Yes' : 'No', $edit_link);
     }
     echo '</tbody></table></div>';
@@ -72,7 +72,7 @@ trait WP_DCine_Auditoria_Trait
     if (!current_user_can('manage_options')) {
       wp_die('Unauthorized');
     }
-    if (!isset($_POST['_wpnonce']) || !wp_verify_nonce($_POST['_wpnonce'], 'wp_d_cine_save_auditorium')) {
+    if (!isset($_POST['_wpnonce']) || !wp_verify_nonce($_POST['_wpnonce'], 'cinemashowtimes_json_save_auditorium')) {
       wp_die('Nonce check failed');
     }
     global $wpdb;
@@ -101,7 +101,7 @@ trait WP_DCine_Auditoria_Trait
     }
 
     if (!$auditorium_id) {
-      wp_redirect(admin_url('admin.php?page=wp-d-cine-auditoria'));
+      wp_redirect(admin_url('admin.php?page=cinemashowtimes-json-auditoria'));
       exit;
     }
 
@@ -121,7 +121,7 @@ trait WP_DCine_Auditoria_Trait
       $wpdb->insert($table, $payload);
     }
 
-    wp_redirect(admin_url('admin.php?page=wp-d-cine-auditoria'));
+    wp_redirect(admin_url('admin.php?page=cinemashowtimes-json-auditoria'));
     exit;
   }
 
@@ -131,7 +131,7 @@ trait WP_DCine_Auditoria_Trait
       wp_die('Unauthorized');
     }
     $nonce = isset($_GET['_wpnonce']) ? $_GET['_wpnonce'] : '';
-    if (!wp_verify_nonce($nonce, 'wp_d_cine_delete_auditorium')) {
+    if (!wp_verify_nonce($nonce, 'cinemashowtimes_json_delete_auditorium')) {
       wp_die('Nonce check failed');
     }
     $auditorium_id = isset($_GET['auditorium_id']) ? sanitize_text_field($_GET['auditorium_id']) : '';
@@ -139,7 +139,7 @@ trait WP_DCine_Auditoria_Trait
     global $wpdb;
     $table = $wpdb->prefix . 'cine_auditoria';
     $wpdb->delete($table, array('auditorium_id' => $auditorium_id));
-    wp_redirect(admin_url('admin.php?page=wp-d-cine-auditoria'));
+    wp_redirect(admin_url('admin.php?page=cinemashowtimes-json-auditoria'));
     exit;
   }
 

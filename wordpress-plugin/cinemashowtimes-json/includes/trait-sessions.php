@@ -3,7 +3,7 @@ if (!defined('ABSPATH')) {
   exit;
 }
 
-trait WP_DCine_Sessions_Trait
+trait CinemaShowtimes_JSON_Sessions_Trait
 {
   public function sessions_page()
   {
@@ -24,10 +24,10 @@ trait WP_DCine_Sessions_Trait
       $edit_row = null;
     }
 
-    echo '<div class="wrap"><h1>Cine Sessions <a class="page-title-action" href="' . esc_url(add_query_arg(array('page' => 'wp-d-cine-sessions', 'action' => 'add'))) . '">Add New</a></h1>';
+    echo '<div class="wrap"><h1>CinemaShowtimes Sessions <a class="page-title-action" href="' . esc_url(add_query_arg(array('page' => 'cinemashowtimes-json-sessions', 'action' => 'add'))) . '">Add New</a></h1>';
 
     if ($editing) {
-      $nonce = wp_create_nonce('wp_d_cine_save_session');
+      $nonce = wp_create_nonce('cinemashowtimes_json_save_session');
       $session_id_val = $edit_row ? esc_attr($edit_row->session_id) : '';
       $film_id_val = $edit_row ? esc_attr($edit_row->film_id) : '';
       $auditorium_val = $edit_row ? esc_attr($edit_row->auditorium_id) : '';
@@ -48,7 +48,7 @@ trait WP_DCine_Sessions_Trait
       $film_rows = $wpdb->get_results("SELECT film_id, title FROM {$films_table} ORDER BY title ASC");
 
       echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '">';
-      echo '<input type="hidden" name="action" value="wp_d_cine_save_session" />';
+      echo '<input type="hidden" name="action" value="cinemashowtimes_json_save_session" />';
       echo '<input type="hidden" name="_wpnonce" value="' . esc_attr($nonce) . '" />';
       echo '<table class="form-table">';
       echo '<tr><th><label>Session ID</label></th><td><input name="session_id" type="text" value="' . $session_id_val . '" ' . ($edit_row ? 'readonly' : '') . ' required class="regular-text" /></td></tr>';
@@ -73,8 +73,8 @@ trait WP_DCine_Sessions_Trait
       echo '</table>';
       submit_button($edit_row ? 'Save Session' : 'Create Session');
       if ($edit_row) {
-        $del_nonce = wp_create_nonce('wp_d_cine_delete_session');
-        echo '<a class="button button-secondary" href="' . esc_url(admin_url('admin-post.php?action=wp_d_cine_delete_session&session_id=' . rawurlencode($edit_row->session_id) . '&_wpnonce=' . $del_nonce)) . '" onclick="return confirm(\'Delete this session?\')">Delete</a>';
+        $del_nonce = wp_create_nonce('cinemashowtimes_json_delete_session');
+        echo '<a class="button button-secondary" href="' . esc_url(admin_url('admin-post.php?action=cinemashowtimes_json_delete_session&session_id=' . rawurlencode($edit_row->session_id) . '&_wpnonce=' . $del_nonce)) . '" onclick="return confirm(\'Delete this session?\')">Delete</a>';
       }
       echo '</form>';
     }
@@ -82,7 +82,7 @@ trait WP_DCine_Sessions_Trait
     $rows = $wpdb->get_results("SELECT * FROM {$table} ORDER BY start_time_local DESC LIMIT 200");
     echo '<table class="widefat"><thead><tr><th>ID</th><th>Session ID</th><th>Film ID</th><th>Start (local)</th><th>Read Only</th><th>Actions</th></tr></thead><tbody>';
     foreach ($rows as $r) {
-      $edit_link = esc_url(add_query_arg(array('page' => 'wp-d-cine-sessions', 'action' => 'edit', 'session_id' => $r->session_id), admin_url('admin.php')));
+      $edit_link = esc_url(add_query_arg(array('page' => 'cinemashowtimes-json-sessions', 'action' => 'edit', 'session_id' => $r->session_id), admin_url('admin.php')));
       printf('<tr><td>%d</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td><a href="%s">Edit</a></td></tr>', intval($r->id), esc_html($r->session_id), esc_html($r->film_id), esc_html($r->start_time_local), $r->read_only ? 'Yes' : 'No', $edit_link);
     }
     echo '</tbody></table></div>';
@@ -93,7 +93,7 @@ trait WP_DCine_Sessions_Trait
     if (!current_user_can('manage_options')) {
       wp_die('Unauthorized');
     }
-    if (!isset($_POST['_wpnonce']) || !wp_verify_nonce($_POST['_wpnonce'], 'wp_d_cine_save_session')) {
+    if (!isset($_POST['_wpnonce']) || !wp_verify_nonce($_POST['_wpnonce'], 'cinemashowtimes_json_save_session')) {
       wp_die('Nonce check failed');
     }
     global $wpdb;
@@ -113,7 +113,7 @@ trait WP_DCine_Sessions_Trait
     $read_only = isset($_POST['read_only']) ? 1 : 0;
 
     if (!$session_id) {
-      wp_redirect(admin_url('admin.php?page=wp-d-cine-sessions'));
+      wp_redirect(admin_url('admin.php?page=cinemashowtimes-json-sessions'));
       exit;
     }
 
@@ -147,7 +147,7 @@ trait WP_DCine_Sessions_Trait
       $wpdb->insert($table, $payload);
     }
 
-    wp_redirect(admin_url('admin.php?page=wp-d-cine-sessions'));
+    wp_redirect(admin_url('admin.php?page=cinemashowtimes-json-sessions'));
     exit;
   }
 
@@ -157,7 +157,7 @@ trait WP_DCine_Sessions_Trait
       wp_die('Unauthorized');
     }
     $nonce = isset($_GET['_wpnonce']) ? $_GET['_wpnonce'] : '';
-    if (!wp_verify_nonce($nonce, 'wp_d_cine_delete_session')) {
+    if (!wp_verify_nonce($nonce, 'cinemashowtimes_json_delete_session')) {
       wp_die('Nonce check failed');
     }
     $session_id = isset($_GET['session_id']) ? sanitize_text_field($_GET['session_id']) : '';
@@ -165,7 +165,7 @@ trait WP_DCine_Sessions_Trait
     global $wpdb;
     $table = $wpdb->prefix . 'cine_sessions';
     $wpdb->delete($table, array('session_id' => $session_id));
-    wp_redirect(admin_url('admin.php?page=wp-d-cine-sessions'));
+    wp_redirect(admin_url('admin.php?page=cinemashowtimes-json-sessions'));
     exit;
   }
 

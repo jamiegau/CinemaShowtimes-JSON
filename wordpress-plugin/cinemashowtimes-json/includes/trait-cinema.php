@@ -3,7 +3,7 @@ if (!defined('ABSPATH')) {
   exit;
 }
 
-trait WP_DCine_Cinema_Trait
+trait CinemaShowtimes_JSON_Cinema_Trait
 {
   public function cinema_page()
   {

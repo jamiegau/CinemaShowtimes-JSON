@@ -1,5 +1,15 @@
 # Changelog
 
+## Neutral reference update - 2026-08-06
+
+- Removed named downstream implementations from the design and adoption notes.
+- Renamed the WordPress reference plugin, PHP types, hooks, settings, menus,
+  REST namespace and API-key header to the neutral CinemaShowtimes-JSON name.
+- Replaced the deployment-specific WordPress staging script with an
+  environment-configured example.
+- Kept the basic README feed and added the complete validated 1.1 example near
+  the bottom of the main README.
+
 ## 1.1 implementation update - 2026-08-01
 
 - Upgraded the Veezi converter to 1.1 using the documented Film, Session,

@@ -1,7 +1,8 @@
 # Downstream adoption guide
 
-This guide maps the current local systems to CinemaShowtimes-JSON 1.1. It is a
-future integration plan; the three downstream repositories were not modified.
+This guide shows how common cinema systems can project their public data into
+CinemaShowtimes-JSON 1.1 without coupling the standard to a particular product
+or deployment.
 
 ## Shared rules
 
@@ -17,11 +18,12 @@ future integration plan; the three downstream repositories were not modified.
 - Publish only the public projection of each model. Never serialize a database
   row wholesale.
 
-## dcinenet_catcher
+## Projection and presentation systems
 
-Recommended output is the session `presentation` object:
+Systems that inspect or manage presented content should publish only safe,
+consumer-relevant facts through the session `presentation` object:
 
-| Catcher concept | CinemaShowtimes field |
+| Source concept | CinemaShowtimes field |
 | --- | --- |
 | CPL UUID | `presentation.cpl_id` |
 | Content title / DCNC | `presentation.dcnc_title` |
@@ -36,11 +38,11 @@ Recommended output is the session `presentation` object:
 Do not export encryption state, KDMs, certificates, device addresses, storage
 locations or operational diagnostics.
 
-## clubmovie
+## Scheduling and point-of-sale systems
 
 Recommended ownership:
 
-| ClubMovie concept | CinemaShowtimes field |
+| Source concept | CinemaShowtimes field |
 | --- | --- |
 | Facility and Google Place ID | `cinema` |
 | Screen and seat count | `auditoria[]` |
@@ -56,11 +58,11 @@ Recommended ownership:
 `gross`, `net`, refunds, comps and patron-linked sales are internal analytics,
 not public feed data.
 
-## dcnServices
+## Facility and content services
 
 Recommended ownership:
 
-| dcnServices concept | CinemaShowtimes field |
+| Source concept | CinemaShowtimes field |
 | --- | --- |
 | Facility aliases and contact data | `cinema.identifiers`, address/contact fields |
 | Auditorium geometry/capabilities | `auditoria[].screen`, `presentation_capabilities` |
@@ -75,7 +77,7 @@ Recommended ownership:
 
 1. Create a shared ID registry and field-level source-of-truth table.
 2. Build read-only 1.1 projections in each system with fixture tests.
-3. Join them in dcnServices or another aggregation boundary.
+3. Join them at a clearly owned aggregation boundary.
 4. Validate every produced feed against the schema.
 5. Publish canonical cinema, film and session pages plus JSON-LD.
 6. Add conditional GET, full and delta feeds, then live availability.

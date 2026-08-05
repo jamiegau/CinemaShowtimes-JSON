@@ -1,9 +1,13 @@
-# Set SSH user and host variables
-SSH_USER="root"         # <-- Replace with your SSH username
-SSH_HOST="webster.digitall.net.au"
-SSH_PORT=22
+#!/usr/bin/env sh
+set -eu
 
-MARLOO_STAGING_PATH="/home/marloo_staging_cinema/website/wp-content/plugins/."
-rsync -avz -e "ssh -p $SSH_PORT" wp_d-cine_sessiontimes_data ${SSH_USER}@${SSH_HOST}:$MARLOO_STAGING_PATH
-ssh -p $SSH_PORT ${SSH_USER}@${SSH_HOST} chmod -R g+rw ${MARLOO_STAGING_PATH}
-ssh -p $SSH_PORT ${SSH_USER}@${SSH_HOST} chown -R www-data:www-data ${MARLOO_STAGING_PATH}
+: "${WP_DEPLOY_USER:?Set WP_DEPLOY_USER to the SSH account}"
+: "${WP_DEPLOY_HOST:?Set WP_DEPLOY_HOST to the WordPress host}"
+: "${WP_DEPLOY_PATH:?Set WP_DEPLOY_PATH to the remote wp-content/plugins directory}"
+
+WP_DEPLOY_PORT="${WP_DEPLOY_PORT:-22}"
+
+rsync -avz \
+  -e "ssh -p ${WP_DEPLOY_PORT}" \
+  cinemashowtimes-json \
+  "${WP_DEPLOY_USER}@${WP_DEPLOY_HOST}:${WP_DEPLOY_PATH%/}/"

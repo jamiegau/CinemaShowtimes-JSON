@@ -1,9 +1,16 @@
 # CinemaShowtimes-JSON 1.1 WordPress plugin
 
-`wp_d-cine_sessiontimes_data` imports, stores, edits and exports
+`cinemashowtimes-json` imports, stores, edits and exports
 `cinemashowtimes-json/1.1`.
 
-## What changed in 0.2.0
+## What changed in 0.3.0
+
+- Uses the neutral CinemaShowtimes-JSON name for the plugin directory, PHP
+  types, WordPress hooks, settings, menus, REST namespace and API-key header.
+- Removes deployment-specific host and filesystem assumptions from the example
+  deployment script.
+
+Version 0.2.0 added the 1.1 data model:
 
 - Strictly accepts 1.1 full and delta feeds.
 - Preserves the complete raw JSON for every film, auditorium and session while
@@ -22,35 +29,44 @@
 
 ## Installation and database upgrade
 
-Copy `wp_d-cine_sessiontimes_data` to `wp-content/plugins` and activate it. A
+Copy `cinemashowtimes-json` to `wp-content/plugins` and activate it. A
 database-version check uses `dbDelta()` to add the 1.1 columns and lossless
 `raw_payload` columns without removing the original indexed fields, including
 when an already-active installation is upgraded.
 
-Back up the WordPress database before upgrading an existing installation.
+Version 0.3.0 uses new neutral WordPress option, hook and route identifiers.
+After replacing an earlier experimental build, reactivate the plugin, review
+its settings and update clients to the endpoints and header below. Existing
+indexed feed tables are retained. Back up the WordPress database before
+upgrading an existing installation.
 
 ## REST endpoints
 
 | Method | Endpoint | Purpose |
 | --- | --- | --- |
-| `POST` | `/wp-json/cine/v1/import` | Import a 1.1 full or delta feed; requires the import `X-CINE-API` key |
-| `GET` | `/wp-json/cine/v1/showtimes` | Canonical local 1.1 feed |
-| `GET` | `/wp-json/cine/v1/export` | Compatibility alias for the local feed |
-| `GET` | `/wp-json/cine/v1/films/{film_id}` | One film entity |
-| `GET` | `/wp-json/cine/v1/sessions/{session_id}` | One session entity |
+| `POST` | `/wp-json/cinemashowtimes/v1/import` | Import a 1.1 full or delta feed; requires the import `X-CINEMASHOWTIMES-API` key |
+| `GET` | `/wp-json/cinemashowtimes/v1/showtimes` | Canonical local 1.1 feed |
+| `GET` | `/wp-json/cinemashowtimes/v1/export` | Compatibility alias for the local feed |
+| `GET` | `/wp-json/cinemashowtimes/v1/films/{film_id}` | One film entity |
+| `GET` | `/wp-json/cinemashowtimes/v1/sessions/{session_id}` | One session entity |
 
 Public discovery reads are enabled by default and can be disabled in Settings.
-When disabled, send the configured local key in `X-CINE-API`. API keys are not
-accepted in query strings, to reduce leakage through logs and referrers.
+When disabled, send the configured local key in `X-CINEMASHOWTIMES-API`. API
+keys are not accepted in query strings, to reduce leakage through logs and
+referrers.
+
+The included `deploy_to_staging.sh` is optional. It requires
+`WP_DEPLOY_USER`, `WP_DEPLOY_HOST` and `WP_DEPLOY_PATH`; it contains no
+project-specific host, account or filesystem defaults.
 
 Example import:
 
 ```sh
 curl --request POST \
   --header 'Content-Type: application/json' \
-  --header 'X-CINE-API: replace-with-import-key' \
+  --header 'X-CINEMASHOWTIMES-API: replace-with-import-key' \
   --data-binary @examples/CinemaShowtimes-1.1-example.json \
-  'https://cinema.example.com/wp-json/cine/v1/import'
+  'https://cinema.example.com/wp-json/cinemashowtimes/v1/import'
 ```
 
 ## Storage model
@@ -74,7 +90,7 @@ WordPress-compatible in-memory store and validates the exported round trip:
 ```sh
 roundtrip="$(mktemp)"
 php tests/php/wordpress-roundtrip.php "$roundtrip"
-python tools/validate_examples.py --feed "$roundtrip"
+python3 tools/validate_examples.py --feed "$roundtrip"
 ```
 
 The harness is not a replacement for testing against the exact WordPress, PHP

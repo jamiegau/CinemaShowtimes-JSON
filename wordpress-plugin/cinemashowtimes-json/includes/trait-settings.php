@@ -3,7 +3,7 @@ if (!defined('ABSPATH')) {
   exit;
 }
 
-trait WP_DCine_Settings_Trait
+trait CinemaShowtimes_JSON_Settings_Trait
 {
   public function register_settings()
   {
@@ -62,10 +62,10 @@ trait WP_DCine_Settings_Trait
       $out['public_feed'] = !empty($input['public_feed']) ? '1' : '0';
     }
 
-    wp_clear_scheduled_hook('wp_d_cine_scheduled_fetch');
+    wp_clear_scheduled_hook('cinemashowtimes_json_scheduled_fetch');
     if (!empty($out['auto_mode'])) {
       $minutes = isset($out['interval_minutes']) ? intval($out['interval_minutes']) : 15;
-      wp_schedule_event(time(), 'wp_d_cine_interval_' . $minutes, 'wp_d_cine_scheduled_fetch');
+      wp_schedule_event(time(), 'cinemashowtimes_json_interval_' . $minutes, 'cinemashowtimes_json_scheduled_fetch');
     }
     return $out;
   }
@@ -83,7 +83,7 @@ trait WP_DCine_Settings_Trait
     $opts = wp_parse_args(get_option($this->option_name, array()), $defaults);
     ?>
     <div class="wrap">
-      <h1>d-Cine Sessiontimes Settings</h1>
+      <h1>CinemaShowtimes-JSON Settings</h1>
       <p>This plugin imports and exports <code>cinemashowtimes-json/1.1</code>. Imported entities are preserved losslessly while selected fields remain editable.</p>
       <form method="post" action="options.php">
         <?php settings_fields($this->option_name); ?>
@@ -99,7 +99,7 @@ trait WP_DCine_Settings_Trait
             <th scope="row"><label for="api_key">Import/source key</label></th>
             <td><input name="<?php echo esc_attr($this->option_name); ?>[api_key]" type="password" id="api_key"
                 value="<?php echo esc_attr($opts['api_key']); ?>" autocomplete="new-password" class="regular-text" />
-              <p class="description">Sent only in the <code>X-CINE-API</code> header.</p>
+              <p class="description">Sent only in the <code>X-CINEMASHOWTIMES-API</code> header.</p>
             </td>
           </tr>
           <tr>
@@ -117,7 +117,7 @@ trait WP_DCine_Settings_Trait
         <table class="form-table">
           <tr>
             <th scope="row">Canonical endpoint</th>
-            <td><code><?php echo esc_html(rest_url('cine/v1/showtimes')); ?></code></td>
+            <td><code><?php echo esc_html(rest_url('cinemashowtimes/v1/showtimes')); ?></code></td>
           </tr>
           <tr>
             <th scope="row">Public discovery</th>
@@ -129,7 +129,7 @@ trait WP_DCine_Settings_Trait
             <th scope="row"><label for="local_api_key">Private feed key</label></th>
             <td><input name="<?php echo esc_attr($this->option_name); ?>[local_api_key]" type="password" id="local_api_key"
                 value="<?php echo esc_attr($opts['local_api_key']); ?>" autocomplete="new-password" class="regular-text" />
-              <p class="description">Required in <code>X-CINE-API</code> when public discovery is disabled.</p>
+              <p class="description">Required in <code>X-CINEMASHOWTIMES-API</code> when public discovery is disabled.</p>
             </td>
           </tr>
         </table>
@@ -138,8 +138,8 @@ trait WP_DCine_Settings_Trait
 
       <h2>Manual fetch</h2>
       <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
-        <input type="hidden" name="action" value="wp_d_cine_manual_fetch" />
-        <?php wp_nonce_field('wp_d_cine_manual_fetch'); ?>
+        <input type="hidden" name="action" value="cinemashowtimes_json_manual_fetch" />
+        <?php wp_nonce_field('cinemashowtimes_json_manual_fetch'); ?>
         <?php submit_button('Run manual fetch now'); ?>
       </form>
     </div>

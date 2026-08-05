@@ -174,9 +174,9 @@ class FakeWpdb
 
 $wpdb = new FakeWpdb();
 $root = dirname(__DIR__, 2);
-require_once $root . '/wordpress-plugin/wp_d-cine_sessiontimes_data/wp-d-cine-sessiontimes-data.php';
+require_once $root . '/wordpress-plugin/cinemashowtimes-json/cinemashowtimes-json.php';
 
-$plugin = WP_DCine_Sessiontimes_Data::instance();
+$plugin = CinemaShowtimes_JSON_Plugin::instance();
 $feed = json_decode(file_get_contents($root . '/examples/CinemaShowtimes-1.1-example.json'), true);
 
 $validate = new ReflectionMethod($plugin, 'validate_feed_11');

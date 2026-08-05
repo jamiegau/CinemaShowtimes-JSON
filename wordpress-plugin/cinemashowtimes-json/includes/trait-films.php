@@ -3,7 +3,7 @@ if (!defined('ABSPATH')) {
   exit;
 }
 
-trait WP_DCine_Films_Trait
+trait CinemaShowtimes_JSON_Films_Trait
 {
   public function films_page()
   {
@@ -22,10 +22,10 @@ trait WP_DCine_Films_Trait
       $edit_row = null;
     }
 
-    echo '<div class="wrap"><h1>Cine Films <a class="page-title-action" href="' . esc_url(add_query_arg(array('page' => 'wp-d-cine-films', 'action' => 'add'))) . '">Add New</a></h1>';
+    echo '<div class="wrap"><h1>CinemaShowtimes Films <a class="page-title-action" href="' . esc_url(add_query_arg(array('page' => 'cinemashowtimes-json-films', 'action' => 'add'))) . '">Add New</a></h1>';
 
     if ($editing) {
-      $nonce = wp_create_nonce('wp_d_cine_save_film');
+      $nonce = wp_create_nonce('cinemashowtimes_json_save_film');
       // When editing, use the existing film_id. When adding, suggest the next likely numeric ID
       if ($edit_row) {
         $film_id_val = esc_attr($edit_row->film_id);
@@ -54,7 +54,7 @@ trait WP_DCine_Films_Trait
       $read_only_checked = $edit_row && $edit_row->read_only ? 'checked' : '';
 
       echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '">';
-      echo '<input type="hidden" name="action" value="wp_d_cine_save_film" />';
+      echo '<input type="hidden" name="action" value="cinemashowtimes_json_save_film" />';
       echo '<input type="hidden" name="_wpnonce" value="' . esc_attr($nonce) . '" />';
       echo '<table class="form-table">';
       echo '<tr><th><label>Film ID</label></th><td><input name="film_id" type="text" value="' . $film_id_val . '" ' . ($edit_row ? 'readonly' : '') . ' required class="regular-text" /></td></tr>';
@@ -72,8 +72,8 @@ trait WP_DCine_Films_Trait
       echo '</table>';
       submit_button($edit_row ? 'Save Film' : 'Create Film');
       if ($edit_row) {
-        $del_nonce = wp_create_nonce('wp_d_cine_delete_film');
-        echo '<a class="button button-secondary" href="' . esc_url(admin_url('admin-post.php?action=wp_d_cine_delete_film&film_id=' . rawurlencode($edit_row->film_id) . '&_wpnonce=' . $del_nonce)) . '" onclick="return confirm(\'Delete this film?\')">Delete</a>';
+        $del_nonce = wp_create_nonce('cinemashowtimes_json_delete_film');
+        echo '<a class="button button-secondary" href="' . esc_url(admin_url('admin-post.php?action=cinemashowtimes_json_delete_film&film_id=' . rawurlencode($edit_row->film_id) . '&_wpnonce=' . $del_nonce)) . '" onclick="return confirm(\'Delete this film?\')">Delete</a>';
       }
       echo '</form>';
     }
@@ -81,7 +81,7 @@ trait WP_DCine_Films_Trait
     $rows = $wpdb->get_results("SELECT * FROM {$table} ORDER BY updated_at DESC LIMIT 200");
     echo '<table class="widefat"><thead><tr><th>ID</th><th>Film ID</th><th>Title</th><th>Status</th><th>Read Only</th><th>Actions</th></tr></thead><tbody>';
     foreach ($rows as $r) {
-      $edit_link = esc_url(add_query_arg(array('page' => 'wp-d-cine-films', 'action' => 'edit', 'film_id' => $r->film_id), admin_url('admin.php')));
+      $edit_link = esc_url(add_query_arg(array('page' => 'cinemashowtimes-json-films', 'action' => 'edit', 'film_id' => $r->film_id), admin_url('admin.php')));
       printf('<tr><td>%d</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td><a href="%s">Edit</a></td></tr>', intval($r->id), esc_html($r->film_id), esc_html($r->title), esc_html($r->status), $r->read_only ? 'Yes' : 'No', $edit_link);
     }
     echo '</tbody></table></div>';
@@ -92,7 +92,7 @@ trait WP_DCine_Films_Trait
     if (!current_user_can('manage_options')) {
       wp_die('Unauthorized');
     }
-    if (!isset($_POST['_wpnonce']) || !wp_verify_nonce($_POST['_wpnonce'], 'wp_d_cine_save_film')) {
+    if (!isset($_POST['_wpnonce']) || !wp_verify_nonce($_POST['_wpnonce'], 'cinemashowtimes_json_save_film')) {
       wp_die('Nonce check failed');
     }
     global $wpdb;
@@ -110,7 +110,7 @@ trait WP_DCine_Films_Trait
     $read_only = isset($_POST['read_only']) ? 1 : 0;
 
     if (!$film_id) {
-      wp_redirect(admin_url('admin.php?page=wp-d-cine-films'));
+      wp_redirect(admin_url('admin.php?page=cinemashowtimes-json-films'));
       exit;
     }
 
@@ -131,7 +131,7 @@ trait WP_DCine_Films_Trait
       $wpdb->insert($table, $payload);
     }
 
-    wp_redirect(admin_url('admin.php?page=wp-d-cine-films'));
+    wp_redirect(admin_url('admin.php?page=cinemashowtimes-json-films'));
     exit;
   }
 
@@ -141,7 +141,7 @@ trait WP_DCine_Films_Trait
       wp_die('Unauthorized');
     }
     $nonce = isset($_GET['_wpnonce']) ? $_GET['_wpnonce'] : '';
-    if (!wp_verify_nonce($nonce, 'wp_d_cine_delete_film')) {
+    if (!wp_verify_nonce($nonce, 'cinemashowtimes_json_delete_film')) {
       wp_die('Nonce check failed');
     }
     $film_id = isset($_GET['film_id']) ? sanitize_text_field($_GET['film_id']) : '';
@@ -149,7 +149,7 @@ trait WP_DCine_Films_Trait
     global $wpdb;
     $table = $wpdb->prefix . 'cine_films';
     $wpdb->delete($table, array('film_id' => $film_id));
-    wp_redirect(admin_url('admin.php?page=wp-d-cine-films'));
+    wp_redirect(admin_url('admin.php?page=cinemashowtimes-json-films'));
     exit;
   }
 
