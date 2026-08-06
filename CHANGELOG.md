@@ -2,6 +2,9 @@
 
 ## Neutral reference update - 2026-08-06
 
+- Added an optional bearer-authenticated multi-cinema API profile with explicit
+  cinema selection, per-resource authorization, response shaping, errors,
+  caching, audit and OpenAPI guidance.
 - Removed named downstream implementations from the design and adoption notes.
 - Renamed the WordPress reference plugin, PHP types, hooks, settings, menus,
   REST namespace and API-key header to the neutral CinemaShowtimes-JSON name.

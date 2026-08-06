@@ -66,6 +66,165 @@ Recommended link relations are `self`, `schema`, `documentation`, `delta`,
 `openapi`, `mcp`, `calendar`, `jsonld`, `booking`, `seatmap` and `availability`.
 The feed remains usable when optional linked services do not exist.
 
+## Optional protected multi-cinema API profile
+
+Authentication is an implementation choice, not a requirement of the
+CinemaShowtimes-JSON document format. Public discovery feeds MAY remain
+anonymous. Partner, licensed, private or operational deployments MAY protect
+the same read-only resources with OAuth 2.0 bearer access tokens.
+
+This optional profile separates three decisions:
+
+1. **Authentication:** which user, application or service is calling.
+2. **Authorization:** which operations and cinemas that principal may access.
+3. **Resource selection:** which cinema or cinemas the request asks to read.
+
+A bearer token SHOULD establish the principal and its permissions; it SHOULD
+NOT be the only way a multi-cinema request selects a cinema. Keeping selection
+explicit makes requests auditable, cacheable and unambiguous and prevents a
+token that covers several cinemas from silently selecting the wrong one.
+
+### Cinema selection
+
+Implementers MAY use either of these equivalent resource styles:
+
+```http
+GET /cinemas/EXC-AUS-PMELB/showtimes
+Authorization: Bearer <access-token>
+```
+
+```http
+GET /showtimes?cinema_id=EXC-AUS-PMELB
+Authorization: Bearer <access-token>
+```
+
+The hierarchical form makes ownership visible in the URI. The filtered
+collection form is convenient for aggregators and MAY accept repeated
+`cinema_id` parameters:
+
+```http
+GET /showtimes?cinema_id=EXC-AUS-PMELB&cinema_id=EXC-AUS-CARLTON
+```
+
+Tenant-specific hostnames or a documented cinema-context header MAY also be
+used, but the resolved stable `cinema_id` MUST still appear in the response.
+Context headers MUST be included in cache keys and request signing where those
+features are used.
+
+When no cinema selector is supplied, a server MUST document and consistently
+apply one of these behaviours:
+
+- return all public cinemas for an anonymous discovery service;
+- return all cinemas authorized for the principal;
+- infer the cinema only when the principal is authorized for exactly one; or
+- return `400 Bad Request` because explicit selection is required.
+
+A server MUST NOT arbitrarily choose one cinema when the token permits more
+than one.
+
+For a single selected cinema, a full response SHOULD use the singular `cinema`
+object. For several selected cinemas, it MUST use `cinemas`, and every returned
+session MUST include `cinema_id`. Collections and linked resources MUST be
+filtered so the response does not disclose an unauthorized cinema, auditorium,
+session, offer or availability record.
+
+Flat resource endpoints such as `/sessions/{session_id}` are safe only when the
+identifier is unique across the API and the server resolves and authorizes its
+owning cinema. Otherwise, use hierarchical paths such as
+`/cinemas/{cinema_id}/sessions/{session_id}` and
+`/cinemas/{cinema_id}/auditoria/{auditorium_id}/seatmap`.
+
+Pagination cursors, ETags and delta sequences MUST have documented scope. They
+MAY be global to the service or scoped to the selected/authorized cinema set,
+but a client MUST NOT reuse a selection-scoped cursor or `since` sequence after
+changing its cinema selection. A server MUST reject an incompatible cursor
+rather than returning an incomplete or cross-cinema page.
+
+### Bearer-token option
+
+Protected implementations SHOULD follow
+[OAuth 2.0 Bearer Token Usage](https://www.rfc-editor.org/rfc/rfc6750) and
+[OAuth 2.0 Security Best Current Practice](https://www.rfc-editor.org/rfc/rfc9700):
+
+- accept the token in `Authorization: Bearer`, only over HTTPS;
+- never place access tokens in query parameters, feed documents, booking URLs
+  or logs;
+- use short-lived, least-privilege tokens and define revocation behaviour;
+- use scopes appropriate to the deployed surface, for example
+  `showtimes:read`, `availability:read` and `seatmaps:read`.
+
+The access token MAY be an opaque reference token validated using
+[OAuth Token Introspection](https://www.rfc-editor.org/rfc/rfc7662), or a JWT.
+A JWT access token SHOULD follow
+[RFC 9068](https://www.rfc-editor.org/rfc/rfc9068). The resource server MUST
+validate the signature, issuer, intended audience, expiry and not-before time
+where present, and MUST confirm that the required scope covers the requested
+operation.
+
+Cinema entitlements MAY be carried in a private token claim, attached to an
+organization/installation represented by the token, or retrieved from a
+server-side authorization store. CinemaShowtimes-JSON does not define a token
+claim name. An implementer defining one MUST document its issuer, type,
+semantics and revocation/staleness behaviour. Large or frequently changing
+cinema lists SHOULD be resolved server-side rather than copied into long-lived
+tokens.
+
+Audience restriction identifies the API that may accept a token; it does not
+replace object-level cinema authorization. High-isolation deployments MAY use
+tenant-specific resource indicators or audiences as described by
+[RFC 8707](https://www.rfc-editor.org/rfc/rfc8707), in addition to checking the
+requested cinema.
+
+### Authorization decision
+
+For every protected request, the server MUST:
+
+1. authenticate the token and determine the principal;
+2. verify the token permits the requested operation;
+3. resolve every requested cinema, session or auditorium to its owning cinema;
+4. check that ownership against current principal entitlements; and
+5. apply the same restriction in the data query, not only after serialization.
+
+Possession of a valid token, knowledge of a `cinema_id`, or a matching
+`cinema_id` claim alone MUST NOT bypass the object-level authorization check.
+This is the control recommended for preventing
+[Broken Object Level Authorization](https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/).
+
+Suggested failure responses are:
+
+- `400 Bad Request` for a missing or ambiguous selector when selection is
+  required;
+- `401 Unauthorized` with `WWW-Authenticate: Bearer` for a missing, invalid or
+  expired required token;
+- `403 Forbidden` for a valid principal lacking scope or cinema entitlement;
+- `404 Not Found` instead of `403` when the service intentionally conceals
+  whether a private cinema or resource exists.
+
+Authorization failures MUST use a generic problem response and MUST NOT expose
+tokens, claims, entitlement lists or cross-cinema data.
+
+### Caching, logging and OpenAPI
+
+Anonymous public responses MAY use shared caching. A response filtered by token
+entitlements SHOULD use `Cache-Control: private` or `no-store` unless a trusted
+gateway partitions its internal cache by every principal, entitlement,
+cinema-selection and query input. A custom cinema-context header that changes a
+cacheable representation MUST appear in `Vary`. `Vary: Authorization` alone
+MUST NOT be treated as sufficient proof that a shared cache is safely isolated.
+
+Audit logs SHOULD record a request/correlation ID, principal or client ID,
+requested cinema IDs, resolved cinema IDs, operation, decision and policy
+version. Logs MUST NOT contain bearer tokens. Rate limits SHOULD consider both
+the client/principal and the selected tenant or cinema so one tenant cannot
+consume another tenant's allocation.
+
+The supplied OpenAPI document models anonymous access or optional bearer
+authentication. OpenAPI 3.1 represents that alternative with an empty security
+requirement plus a bearer security requirement. A deployment that requires
+authentication MUST remove the empty requirement. An implementation's published
+OpenAPI description MUST state its actual security requirement and cinema
+selection behaviour rather than copying the example unchanged.
+
 ## Venue identity
 
 `postal_address` is the canonical structured address; the 1.0 `address` string

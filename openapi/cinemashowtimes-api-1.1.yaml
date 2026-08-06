@@ -8,9 +8,14 @@ info:
   description: |
     Recommended read-only HTTP profile for CinemaShowtimes-JSON 1.1.
     Booking, payment and reservation mutation are deliberately out of scope.
+    Anonymous and bearer-authenticated access are shown as alternatives.
+    A deployment requiring authentication must remove the empty security
+    requirement and document how bearer principals are entitled to cinemas.
 servers:
   - url: https://api.examplecinemas.com
-security: []
+security:
+  - {}
+  - bearerAuth: []
 paths:
   /showtimes:
     get:
@@ -19,8 +24,10 @@ paths:
       description: |
         Aggregator responses use the top-level cinemas array and put cinema_id
         on every session. Single-venue responses may use the legacy singular
-        cinema object.
+        cinema object. The bearer token, when used, authorizes the caller; the
+        cinema_id parameter explicitly selects the requested cinemas.
       parameters:
+        - $ref: '#/components/parameters/CinemaIds'
         - $ref: '#/components/parameters/Latitude'
         - $ref: '#/components/parameters/Longitude'
         - $ref: '#/components/parameters/Radius'
@@ -47,6 +54,10 @@ paths:
                 $ref: ../schema/cinemashowtimes-json-1.1.schema.json
         '400':
           $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '429':
           $ref: '#/components/responses/Problem'
   /changes:
@@ -54,6 +65,7 @@ paths:
       operationId: getShowtimeChanges
       summary: Read changed entities and tombstones after a sequence
       parameters:
+        - $ref: '#/components/parameters/CinemaIds'
         - name: since
           in: query
           required: true
@@ -72,6 +84,10 @@ paths:
                 $ref: ../schema/cinemashowtimes-json-1.1.schema.json
         '400':
           $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '410':
           description: Sequence is no longer retained; fetch the full feed.
           content:
@@ -91,6 +107,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Session'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/Problem'
   /sessions/{session_id}/availability:
@@ -113,6 +133,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/LiveAvailability'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/Problem'
   /auditoria/{auditorium_id}/seatmap:
@@ -132,10 +156,40 @@ paths:
             application/json:
               schema:
                 $ref: ../schema/cinemashowtimes-seatmap-1.0.schema.json
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/Problem'
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: |
+        Optional OAuth 2.0 bearer access token. Tokens may be opaque or JWTs.
+        The resource server must validate the token and independently authorize
+        every requested cinema or cinema-owned resource.
   parameters:
+    CinemaIds:
+      name: cinema_id
+      in: query
+      description: |
+        Stable cinema ID. Repeat the parameter to select several cinemas.
+        Authentication and selection are separate: a bearer token limits which
+        cinema IDs are authorized but does not replace this selector. If this
+        parameter is omitted, the server must document whether it returns all
+        public/authorized cinemas, infers a sole authorized cinema, or returns
+        400.
+      schema:
+        type: array
+        minItems: 1
+        uniqueItems: true
+        items:
+          type: string
+      style: form
+      explode: true
     Latitude:
       name: latitude
       in: query
@@ -226,6 +280,23 @@ components:
         application/problem+json:
           schema:
             $ref: '#/components/schemas/Problem'
+    Unauthorized:
+      description: A required bearer token is missing, invalid or expired.
+      headers:
+        WWW-Authenticate:
+          schema:
+            type: string
+          example: Bearer realm="cinemashowtimes"
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Forbidden:
+      description: The principal lacks the required scope or cinema entitlement.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
   schemas:
     Session:
       type: object
@@ -238,6 +309,9 @@ components:
       properties:
         session_id:
           type: string
+        cinema_id:
+          type: string
+          description: Required when the response contains several cinemas.
         film_id:
           type: string
         auditorium_id:

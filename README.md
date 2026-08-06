@@ -132,6 +132,27 @@ A minimal 1.1 example is below.
 }
 ```
 
+## API implementation options
+
+The JSON format does not require authentication. A public discovery service may
+serve `/showtimes` anonymously. A partner or private multi-cinema service may
+instead use OAuth 2.0 bearer tokens while keeping cinema selection explicit:
+
+```http
+GET /showtimes?cinema_id=EXC-AUS-PMELB
+Authorization: Bearer <access-token>
+```
+
+The token identifies the caller and limits which cinemas it may access;
+`cinema_id` identifies what the caller is requesting. Implementations must
+authorize every requested cinema or cinema-owned resource. A token restricted
+to one cinema may support an omitted selector, but a token covering several
+cinemas must never cause an arbitrary cinema to be chosen.
+
+See the
+[optional protected multi-cinema API profile](SPECIFICATION.md#optional-protected-multi-cinema-api-profile)
+and the [OpenAPI 3.1 example](openapi/cinemashowtimes-api-1.1.yaml).
+
 ## Conversion tools
 
 The [conversion guide](conversion-tools/README.md) covers:

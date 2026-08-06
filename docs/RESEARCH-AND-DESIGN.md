@@ -1,7 +1,7 @@
 # Research and design notes for 1.1
 
-Research reviewed on 1 August 2026. This document records why the standard
-changed; [`SPECIFICATION.md`](../SPECIFICATION.md) is normative.
+Research reviewed on 1 and 6 August 2026. This document records why the
+standard changed; [`SPECIFICATION.md`](../SPECIFICATION.md) is normative.
 
 ## Evidence from implementation patterns
 
@@ -90,6 +90,56 @@ and provenance.
 - [W3C DCAT 3](https://www.w3.org/TR/vocab-dcat-3/) and
   [PROV-O](https://www.w3.org/TR/prov-o/) influenced dataset metadata,
   distributions, version/freshness and provenance.
+
+### Protected multi-cinema API patterns
+
+The optional protected API profile was based on standards and first-party
+multi-tenant APIs:
+
+- [OAuth 2.0](https://www.rfc-editor.org/rfc/rfc6749) requires a resource
+  server to validate that an access token is current and scoped for the
+  requested resource.
+- [OAuth bearer-token usage](https://www.rfc-editor.org/rfc/rfc6750) defines
+  the `Authorization: Bearer` request pattern and its TLS and token-leakage
+  safeguards.
+- [OAuth 2.0 Security Best Current Practice](https://www.rfc-editor.org/rfc/rfc9700)
+  updates the OAuth 2.0 security model for threats observed in deployed
+  systems.
+- [JWT access-token profile RFC 9068](https://www.rfc-editor.org/rfc/rfc9068)
+  requires resource servers to validate token type, issuer, audience,
+  signature and time claims. [RFC 7662](https://www.rfc-editor.org/rfc/rfc7662)
+  supplies an introspection alternative for opaque tokens.
+- [OAuth resource indicators](https://www.rfc-editor.org/rfc/rfc8707) recommend
+  audience restriction and specifically discuss including tenant identity in a
+  protected-resource URI for high-isolation multi-tenant services.
+- [OpenAPI 3.1 security requirements](https://spec.openapis.org/oas/v3.1.1.html#security-requirement-object)
+  use `{}` to represent anonymous access and alternative requirement objects to
+  represent optional bearer authentication.
+- Google's [resource-name guidance](https://google.aip.dev/122) uses explicit
+  hierarchical resource names such as `publishers/{publisher}/books/{book}`.
+  This supports `/cinemas/{cinema_id}/showtimes` where a hierarchy is useful.
+- Stripe Connect makes the account context explicit per request using an
+  [account/context header](https://docs.stripe.com/connect/authentication),
+  separate from the API credential. This is a deployed example of keeping
+  authentication and tenant selection distinct.
+- GitHub Apps calculate effective access as the intersection of the user,
+  application and selected-resource permissions:
+  [authorizing GitHub Apps](https://docs.github.com/en/apps/using-github-apps/authorizing-github-apps).
+- Auth0 advises APIs receiving an organization-bearing token to
+  [validate the organization claim](https://auth0.com/docs/manage-users/organizations/using-tokens)
+  against an expected, trusted entity rather than treating claim presence as
+  sufficient.
+- AWS's [multi-tenant API authorization guidance](https://docs.aws.amazon.com/prescriptive-guidance/latest/saas-multitenant-api-access-authorization/introduction.html)
+  distinguishes authentication/authorization from tenant data isolation.
+- OWASP identifies manipulated object IDs as
+  [Broken Object Level Authorization](https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/)
+  and requires permission checks at every endpoint that accepts an object ID.
+
+These sources converge on one rule: a token establishes the principal and
+permission ceiling, while the request explicitly identifies the cinema or
+resource and the server authorizes that object on every access. A token limited
+to one cinema can support an omission/default convenience, but a token covering
+several cinemas must not cause an arbitrary cinema to be selected.
 
 ### Google Search, Maps and Knowledge Graph
 
