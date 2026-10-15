@@ -276,6 +276,40 @@ content IDs while adding platform-specific fields outside the core feed.
 Tracking parameters SHOULD be added at delivery time so `canonical_url` remains
 stable.
 
+### Motion posters
+
+A motion poster is a finished promotional video combining animated poster
+artwork, or trailer footage and campaign artwork, typically for a portrait
+display. Publish it as a film `media[]` entry with `role: "motion_poster"` and
+`kind: "video"`. It is a separate media role from a static `poster` and a
+`trailer`; publishers MUST NOT substitute a static image for a motion poster or
+infer one from an ordinary trailer URL.
+
+Motion posters are OPTIONAL. If no asset is available, omit that entry rather
+than publishing a placeholder or an empty URL. Existing feeds do not need to
+change. The October 2026 update extends the proposed 1.1 role enumeration;
+validators using an earlier schema copy must update before accepting the new
+role. Consumers SHOULD skip unsupported media roles and retain the other film
+data. A display without a usable motion poster SHOULD fall back to an available
+static poster.
+
+For a portrait signage rendition, publishers SHOULD supply a direct video asset
+URL, `mime_type`, `width`, `height` and `duration_seconds`. MP4/H.264 at
+1080 x 1920 (9:16) is a recommended interchange target, not a mandatory size or
+container. Other renditions are permitted; consumers MUST use the supplied
+dimensions rather than infer orientation from the role or filename. An HTML
+watch page is not a direct video asset URL.
+
+Existing `media_id`, `sha256`, `language`, `updated_at` and `rights` fields apply.
+When authorised for lobby playback, record `signage` in `rights.allowed_uses`
+with the applicable territories and validity dates. A role alone grants no
+usage permission. Publish static artwork as a separate entry when available.
+
+The role does not promise a seamless loop or silent audio. Playback timing,
+looping, audio and composition of a trailer window inside artwork are consumer
+features, not implied by this asset declaration. No provider is required to
+create or automatically discover motion posters.
+
 ## Sessions, offers and availability
 
 Every public performance is a separate session. A changed performance retains

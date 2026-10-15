@@ -1,5 +1,15 @@
 # Changelog
 
+## Motion poster support - 2026-10-16
+
+- Added optional `media[].role: "motion_poster"` to the proposed 1.1 schema,
+  restricted to `kind: "video"` and using the existing media metadata fields.
+- Documented portrait-video guidance, absent-asset handling, static-poster
+  fallback and compatibility with earlier schema copies.
+- Added a fictional 1080 x 1920 MP4 rendition to the worked example and README.
+- Added schema contract tests and verified lossless WordPress import/export
+  of motion-poster metadata. Existing feeds without this role remain valid.
+
 ## Neutral reference update - 2026-08-06
 
 - Added an optional bearer-authenticated multi-cinema API profile with explicit

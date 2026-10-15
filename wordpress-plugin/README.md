@@ -82,6 +82,13 @@ primary keys, timestamps and read-only flags are never exposed in the feed.
 Legacy 1.0 JSON stored in older indexed columns is exported under its legacy
 alias rather than being mislabelled as a 1.1 object.
 
+Optional motion posters are preserved in `film.media[]` using
+`kind: "video"` and `role: "motion_poster"`, including their URL, dimensions,
+duration and rights. This uses the existing lossless media storage and does
+not require a database migration or an asset to be present. The reference
+plugin does not generate, download or play the video. Its round-trip harness
+checks that the motion-poster entry survives import/export unchanged.
+
 ## Validation
 
 The repository's test harness imports the complete 1.1 example into a minimal

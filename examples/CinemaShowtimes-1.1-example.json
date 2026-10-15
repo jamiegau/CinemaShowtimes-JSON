@@ -220,6 +220,30 @@
             "allowed_uses": ["web", "search", "social", "paid_social"],
             "territories": ["AU"]
           }
+        },
+        {
+          "media_id": "FILM-EXAMPLE-001-MOTION-POSTER",
+          "kind": "video",
+          "role": "motion_poster",
+          "url": "https://video.examplecinemas.com/example-motion-poster-1080x1920.mp4",
+          "mime_type": "video/mp4",
+          "width": 1080,
+          "height": 1920,
+          "duration_seconds": 15,
+          "language": "en-AU",
+          "primary": true,
+          "updated_at": "2026-07-31T23:40:00Z",
+          "rights": {
+            "holder": "Example Distribution",
+            "allowed_uses": [
+              "signage"
+            ],
+            "territories": [
+              "AU"
+            ],
+            "valid_from": "2026-07-01T00:00:00Z",
+            "valid_until": "2027-01-31T13:00:00Z"
+          }
         }
       ],
       "marketing": {

@@ -232,6 +232,14 @@ if (count($roundtrip['sessions']) !== 1 || empty($roundtrip['films'][0]['media']
     fwrite(STDERR, "Plugin lossless round-trip assertions failed\n");
     exit(1);
 }
+$motionPosters = array_values(array_filter($roundtrip['films'][0]['media'], function ($media) {
+    return isset($media['role']) && $media['role'] === 'motion_poster';
+}));
+if (count($motionPosters) !== 1
+    || $roundtrip['films'][0]['media'] !== $feed['films'][0]['media']) {
+    fwrite(STDERR, "Plugin did not preserve motion-poster media and metadata unchanged\n");
+    exit(1);
+}
 file_put_contents(
     $argv[1],
     json_encode($roundtrip, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)

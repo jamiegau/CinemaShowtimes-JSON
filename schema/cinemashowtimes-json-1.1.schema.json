@@ -375,7 +375,8 @@
         "media_id": { "$ref": "#/$defs/id" },
         "kind": { "enum": ["image", "video", "audio", "document"] },
         "role": {
-          "enum": ["poster", "backdrop", "banner", "thumbnail", "logo", "trailer", "teaser", "social", "clip", "caption", "transcript", "other"]
+          "description": "The asset's purpose. motion_poster is a finished promotional video, typically portrait, and requires kind: video.",
+          "enum": ["poster", "motion_poster", "backdrop", "banner", "thumbnail", "logo", "trailer", "teaser", "social", "clip", "caption", "transcript", "other"]
         },
         "url": { "type": "string", "format": "uri" },
         "mime_type": { "type": "string" },
@@ -396,6 +397,12 @@
         "rights": { "$ref": "#/$defs/rights" },
         "updated_at": { "$ref": "#/$defs/dateTime" }
       },
+      "allOf": [
+        {
+          "if": { "properties": { "role": { "const": "motion_poster" } }, "required": ["role"] },
+          "then": { "properties": { "kind": { "const": "video" } } }
+        }
+      ],
       "additionalProperties": true
     },
     "film": {

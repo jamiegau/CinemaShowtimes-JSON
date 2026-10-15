@@ -69,6 +69,20 @@ exist rather than duplicated in a proprietary presales object.
 For example, alongside `https://cinemaname.com/showtimes.json`, a publisher can
 offer `https://cinemaname.com/comingsoon.json`.
 
+## Motion Poster support
+
+Publish an available motion poster in `film.media[]` with `kind: "video"` and
+`role: "motion_poster"`, alongside the separate static poster and trailer.
+The existing URL, MIME type, dimensions, duration, hash and rights fields apply;
+1080 x 1920 MP4 is a recommended portrait rendition. Motion posters are optional:
+omit the entry when none is supplied, and consumers can fall back to the static
+poster. No asset needs to exist for a feed to remain valid.
+
+See the [motion-poster contract](SPECIFICATION.md#motion-posters) and the
+[worked example](examples/CinemaShowtimes-1.1-example.json). Its motion-poster
+URL is fictional documentation, not a supplied movie asset. This extends the
+proposed 1.1 schema; earlier schema copies must be updated to accept the new role.
+
 ## What you will find in this repository
 
 1. A normative specification, JSON Schemas and validated examples.
@@ -188,6 +202,7 @@ Install `jsonschema`, then validate the shipped examples:
 ```sh
 python3 -m pip install -r requirements-dev.txt
 python3 tools/validate_examples.py
+python3 -m unittest discover -s tests -p 'test_*.py' -v
 
 output_dir="$(mktemp -d)"
 php tests/php/generate-converter-fixtures.php "$output_dir"
@@ -436,6 +451,30 @@ same entities but are separate document modes described in the
             "holder": "Example Distribution",
             "allowed_uses": ["web", "search", "social", "paid_social"],
             "territories": ["AU"]
+          }
+        },
+        {
+          "media_id": "FILM-EXAMPLE-001-MOTION-POSTER",
+          "kind": "video",
+          "role": "motion_poster",
+          "url": "https://video.examplecinemas.com/example-motion-poster-1080x1920.mp4",
+          "mime_type": "video/mp4",
+          "width": 1080,
+          "height": 1920,
+          "duration_seconds": 15,
+          "language": "en-AU",
+          "primary": true,
+          "updated_at": "2026-07-31T23:40:00Z",
+          "rights": {
+            "holder": "Example Distribution",
+            "allowed_uses": [
+              "signage"
+            ],
+            "territories": [
+              "AU"
+            ],
+            "valid_from": "2026-07-01T00:00:00Z",
+            "valid_until": "2027-01-31T13:00:00Z"
           }
         }
       ],

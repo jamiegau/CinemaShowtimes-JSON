@@ -68,10 +68,16 @@ Recommended ownership:
 | Auditorium geometry/capabilities | `auditoria[].screen`, `presentation_capabilities` |
 | Accessibility equipment | cinema/auditorium `accessibility` |
 | Regional rating and release | `film.classifications[]`, `releases[]` |
-| Poster/trailer renditions | `film.media[]` |
+| Poster/trailer/motion-poster renditions | `film.media[]` with distinct roles |
 | MIME, bytes, hash, duration | media technical fields and extensions |
 | Approval/licence state | `media.rights` |
 | Source and retrieval time | entity `provenance` and `updated_at` |
+
+Motion posters use `kind: "video"` and `role: "motion_poster"`. Use the existing
+URL, MIME type, dimensions, duration, hash and rights fields. Omit the entry when
+no asset is available; do not relabel a static poster or assume a trailer is a
+motion poster. Keep the static poster available for consumers that cannot play
+the video. See the [motion-poster contract](../SPECIFICATION.md#motion-posters).
 
 ## Suggested rollout
 
